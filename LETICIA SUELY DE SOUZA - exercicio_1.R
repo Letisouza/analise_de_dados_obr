@@ -22,7 +22,7 @@ total_votos <- 84.9
 # fazendo uma operação aritmética entre o objeto votos_candidatos
 # e o objeto total_votos
 
-porcentagem_votos <- c(votos_candidatos[1]/total_votos, votos_candidatos[2]/total_votos, votos_candidatos[3]/total_votos, votos_candidatos[4]/total_votos, votos_candidatos[5]/total_votos, votos_candidatos[6]/total_votos)
+porcentagem_votos <- c(votos_candidatos[1]/total_votos*100, votos_candidatos[2]/total_votos*100, votos_candidatos[3]/total_votos*100, votos_candidatos[4]/total_votos*100, votos_candidatos[5]/total_votos*100, votos_candidatos[6]/total_votos*100)
 porcentagem_votos
 
 # Crie um dataframe com o nome dos candidatos, o partido,
