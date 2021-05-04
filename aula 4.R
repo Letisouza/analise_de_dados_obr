@@ -3,6 +3,10 @@
 library(tidyverse)
 library(poliscidata)
 
+banco_nes <- nes
+
+banco_nes$gender
+
 # Correlação (R²) entre variáveis: antes de calcular, traçar um gráfic de dispersão.
 
 cor(banco_nes$obama_therm, 
@@ -25,7 +29,7 @@ banco_nes %>%
   
 t.test(obama_therm ~ gender, data = banco_nes)  # primeiro variável numérica, depois a categórica
  
-# Resultado: média: por grupo. p-valor: 0.000000000000007; Intervalo de confiança: permanece sem ultrapassar o 0, entando a diferença
+# Resultado: média: por grupo. p-valor: 0.000000000000007; Intervalo de confiança: permanece sem ultrapassar o 0,  a diferença
 # entre as médias varia nesse intervalo (em módulo).
  
 # Em caso de variáveis categóricas com mais de 2 categorias, temos uma ANOVA. É preciso usar as duas funções seguintes:
@@ -33,7 +37,7 @@ t.test(obama_therm ~ gender, data = banco_nes)  # primeiro variável numérica, 
 teste_anova <-aov(obama_therm ~ dem_raceeth4, data = banco_nes)
 summary(teste_anova)
 
-# Resultado - P-valor: muito pequeno. Não mostra a diferença entre os grupos, mas se apenas uma das combinações for significante,
+# Resultado - P-valor: muito pequeno. Não mostra a diferença entre os grupos, mas SE apenas uma das combinações for significante,
 # o p-valor será significativo.
 
 #Teste Tukey
@@ -75,6 +79,19 @@ ggplot(banco_nes, aes(pres_vote12, fill = gender)) + #a segunda variável fica n
   geom_bar(position = "fill")
 
 # count vira uma proporção, não uma contagem.
+
+
+# qui-quadrado: gráfico
+
+library(vdc)
+
+tabela <- table(banco$free_overall, banco$hi_gdp)
+
+# mostra associação entre cada grupo de variáveis
+
+assoc(table, shade = T)
+
+
 
 
 
@@ -163,6 +180,7 @@ ggplot(banco_nes, aes(conservatism, fill = pres_vote12)) + # fill é a categóri
 
 # Como mudar legendas de variáveis categoricas?
 # Como ajustar a escala de valores?
+
 
 
 
