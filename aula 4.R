@@ -121,6 +121,18 @@ ggplot(banco_nes, aes(pres_vote12, conservatism)) +
   geom_violin(draw_quantiles = c(0.25, 0.5, 0.75))
 
 
+# gráfico pra anova: Quemuel
+
+a<-banco%>%select(gini08, free_overall_4)
+a<-Rmisc::summarySE(a,"gini08","free_overall_4",na.rm = T)
+
+a%>%na.omit%>%ggplot(aes(free_overall_4, gini08))+
+  geom_bar(stat="identity")+
+  geom_errorbar(aes(ymin=gini08-sd, ymax=gini08+sd))
+
+
+
+
 
 
 
