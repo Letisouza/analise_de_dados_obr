@@ -19,7 +19,7 @@
 # interpretação dos dados
 
 # dados de resíduos, com média muito próxima de zero; coeficientes das variáveis, erro padrão (utilizado pra calcular o 
-# intervalo de confiança, aumentando ou diminuibndo a depender do intervalo desejado), valor t e p-valor; 
+# intervalo de confiança, aumentando ou diminuindo a depender do intervalo desejado), valor t e p-valor; 
 # residual standard error: Erro do modelo em média (distância dos pontos em relação à linha), R² (capacidade de explicação
 # do modelo sobre a variação da variável dependente), R² ajustado (melhor em reg múltipla).
 
@@ -62,16 +62,16 @@ setwd("") # determina em as aspas os local da pasta onde se quer guardar os arqu
 
 library(readxl)
 
-read_excel("nome do arquivo") 
+read_excel("nome do arquivo.xlsx") 
 
 # em caso de planilhas com várias planilhas, por default de abre a primeira. Para especificar:
 
-read_excel("nome do arquivo", sheet = x) # x é o número da planilha ou nome da planilha)
+read_excel("nome do arquivo.xlsx", sheet = x) # x é o número da planilha ou nome da planilha)
 
 
 # especificando apenas algumas colunas ou linhas para carregar
 
-read_excel("", sheet = x,
+read_excel("nome do arquivo.xlsx", sheet = x,
            range = call_cols("A:J"), # selecionando colunas
            range = call_rows(1:8), # selecionando linhas
            range = "A1:J8")        # selecionando colunas e linhas ao mesmo tempo
@@ -81,21 +81,21 @@ read_excel("", sheet = x,
 
 library(writexl)
 
-write_xlsx(banco, "Nome do arquivo a ser salvo") # salva este arquivo na pasta de referência. Se for outra, especificar antes no nome do arquivo.
+write_xlsx(banco, "Nome do arquivo a ser salvo.xlsx") # salva este arquivo na pasta de referência. Se for outra, especificar antes no nome do arquivo.
 
 
 # abrindo csv
 
 library(tidyverse)
 
-read_csv(banco, "nome do arquivo") # célula separadas por vírgula
+read_csv(banco, "nome do arquivo.csv") # célula separadas por vírgula
 
-read_csv2(banco, "nome do arquivo") # célula separada por ponto e vígula
+read_csv2(banco, "nome do arquivo.csv") # célula separada por ponto e vígula
 
 
 # salvando
 
-write_csv(banco, "nome do arquivo") ou write_csv2(banco, "nome do arquivo") # ou indicando ainda a pasta caso necessite antes do nome do arquivo.
+write_csv(banco, "nome do arquivo.csv") ou write_csv2(banco, "nome do arquivo") # ou indicando ainda a pasta caso necessite antes do nome do arquivo.
 
 
 
@@ -114,11 +114,11 @@ write_sav()
 
 url < - "link"
 
-download.file(url, "nome desejado do arquivo", node = "wb")
+download.file(url, "nome desejado do arquivo.tipo de arquivo", mode = "wb")
 
 # abrindo este arquivo
 
-banco <- read_excel("nome do arquivo")
+banco <- read_excel("nome do arquivo.xlsx")
 
 
 ###########################
