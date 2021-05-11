@@ -20,8 +20,8 @@
 
 # dados de resíduos, com média muito próxima de zero; coeficientes das variáveis, erro padrão (utilizado pra calcular o 
 # intervalo de confiança, aumentando ou diminuindo a depender do intervalo desejado), valor t e p-valor; 
-# residual standard error: Erro do modelo em média (distância dos pontos em relação à linha), R² (capacidade de explicação
-# do modelo sobre a variação da variável dependente), R² ajustado (melhor em reg múltipla).
+# residual standard error: Erro do modelo em média de pontos (distância dos pontos em relação à linha) dada a escala da variável, 
+# R² (capacidade de explicação do modelo sobre a variação da variável dependente), R² ajustado (melhor em reg múltipla).
 
 ####################################
 
