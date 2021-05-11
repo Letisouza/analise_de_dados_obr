@@ -1,0 +1,60 @@
+---
+title: "aula 6"
+author: "Leticia Souza"
+date: "11 de maio de 2021"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+https://rmarkdown.rstudio.com/lesson-1.html
+
+# Título
+## Título
+### Título
+
+Quanto mais #, menor o título.
+
+Negrito: **palavra** ou __palavra__
+itálico: *palavra* ou _palavra_
+
+Comando para chunks Ctrl + Alt + i
+
+```{r}
+library(tidyverse)
+library(poliscidata)
+
+banco <- nes
+reg <- lm(obama_therm ~ conservatism, banco)
+reg2 <- lm(obama_therm ~ conservatism + spsrvpr_ssself, banco)
+```
+
+## Including Plots
+
+```{r pressure, echo=FALSE}
+ggplot(banco, aes(conservatism, obama_therm)) +
+  geom_jitter(alpha = 0.1)
+```
+
+Para documentos em html: tabela personalizável
+
+```{r, results="asis" }
+library(stargazer)
+
+stargazer(reg, type = "html")
+
+stargazer(list(reg,reg2), type = "html")
+```
+Para documento em pdf e word: tabela (olhar no roteiro)
+
+Dois modelos em um único gráfico
+```{r}
+library(sjPlot)
+
+plot_models(reg, reg2)
+```
+
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
