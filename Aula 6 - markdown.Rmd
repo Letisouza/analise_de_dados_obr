@@ -47,7 +47,10 @@ stargazer(reg, type = "html")
 
 stargazer(list(reg,reg2), type = "html")
 ```
-Para documento em pdf e word: tabela (olhar no roteiro)
+Para documento em pdf e word: tabela personalizável
+```{r}
+stargazer(reg, type = "latex", header = F)
+```
 
 Dois modelos em um único gráfico
 ```{r}
