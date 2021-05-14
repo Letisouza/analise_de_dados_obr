@@ -31,7 +31,7 @@ lm(obama_therm ~ spsrvpr_ssself, banco) %>% summary()
 lm(obama_therm ~ conservatism + spsrvpr_ssself, banco) %>% summary()
 lm(obama_therm ~ conservatism + spsrvpr_ssself, banco) %>%  confint()
 
-# Importante: aqui, R² ajustado é mais importante que o R², visto que avalia por variável em ves de pelo modelo inteiro.
+# Importante: aqui, R² ajustado é mais importante que o R², visto que avalia por variável em vez de pelo modelo inteiro.
 
 # visualização de resultados de regressão em forma de gráfico
 library(sjPlot)
