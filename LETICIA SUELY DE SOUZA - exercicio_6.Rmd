@@ -1,0 +1,99 @@
+---
+title: "Exercício 6"
+author: "Rodrigo Martins"
+date: "13/05/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+### Carregue no R o banco de dados que está no seguinte endereço: <https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav>
+
+```{r}
+url <- "https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav"
+
+download.file(url, "banco.sav", mode = "wb")
+
+library(haven)
+
+banco <- read_sav("banco.sav")
+```
+
+Este banco de dados é o ESEB 2018, com dados eleitorais coletados por survey. Para mais detalhes sobre este banco, ver o seguinte endereço: <https://www.cesop.unicamp.br/por/eseb/ondas>
+
+### No exercício anterior, trabalhamos com a variável Q1607 (que indica uma nota de 0 a 10 ao candidato Jair Bolsonaro) e a variável Q18 (que indica uma auto-atribuição em uma escala ideologica de 0 a 10, da esquerda para a direita). Agora vamos trabalhar também com as variáveis Q1501, relativa a nota atribuída ao PT, D1A_ID, que indica a idade do respondente, e D9, com a renda do respondente.
+
+### Mantenha no banco de dados apenas as variáveis que serão utilizadas e as observações válidas para nossa exploração dos dados. As variáveis, Q1607, Q18 e Q1501 com valores acima de 10 representam respostas não uteis para nossa pesquisa, assim como os valores iguais ou maiores que 9999998 da variável D9.
+
+```{r}
+library(tidyverse)
+
+banco <- banco %>% 
+  select(Q1607, Q18, Q1501, D1A_ID, D9) %>% 
+  filter(Q1607 <= 10,
+         Q18 <= 10,
+         Q1501 <= 10,
+         D9 != 9999998)
+
+```
+
+### Nosso interesse continua sendo investigar em que medida ideologia está causalmente associada com a aprovação de Bolsonaro. Suponha que teoricamente você teria elementos para incluir todas as outras variáveis em uma regressão linear. Estime esta regressão linear utilizando aprovação de Bolsonaro como variável dependente e as outras variáveis como as independentes.
+
+```{r}
+cor(banco, use = "complete.obs")
+```
+```{r}
+reg <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9, banco)
+summary(reg)
+```
+
+### Interprete o resultado da regressão (coeficientes, p-valores e medidas de ajuste do modelo)
+
+O intercepto indica um coeficiente de 4.29, indicando que esta é a aprovação de Bolsonaro, em média, quando todas as variáveis forem 0. O p-valor é bastante significativo, sendo quase 0.
+A variável de ideologia tem um coeficiente positivo de 0.34, indicando que quanto mais à direita, maior é a aprovação à Bolsonaro. O p-valor é bastante significativo, atingindo quase 0.
+A variável de avaliação do PT tem relação negativa com aprovação de Bolsonaro, -0.39, indicando que tanto mior a nota de avaliação do PT, menor a aprovação de Bolsonaro. O p-valor também é bastante significativo, atingindo quase 0.
+A variável de idade do respondente do survey tem relação positiva com aprovação de bolsonaro, 0.01, indicando que quanto mais velho o responde, maior é a aprovação de Bolsonaro. O p-valor continua abstante significativo, apesar de ser ligeiramente maior o p-valor das variáveis anteriores.
+Já a variável de renda não possui um p-valor significativo. O coeficiente apresenta uma relação negativa que indicaria que quanto maior a renda, menor a aprovação de Bolsonaro.
+
+O R² é de 0.281, mas o R² ajustado é a medida mais adequada para interpreta regressões múltiplas, dado que, diferente do R², pondera a análise por variável incluída, não pelo modelo no geral. O R² ajustado é de .279. Esse dado apresenta um valor baixo de ajuste do modelo, indicando que há alguns problemas com eles.
+
+
+### Verifique o intervalo de confiança dos coeficientes
+
+```{r}
+confint(reg)
+```
+
+### Represente graficamente os coeficientes estimados
+
+```{r}
+library(sjPlot)
+
+plot_model(reg, 
+           title = "Aprovação de Bolsonaro",
+           axis.labels = c(
+    "Renda", "Idade", "Aprovação do PT", "Ideologia"
+  ))
+```
+
+### Qual variável tem maior efeito para a aprovação de Bolsonaro? Justifique
+
+```{r}
+plot_model(reg, type = "std",
+           title = "Aprovação de Bolsonaro",
+           axis.labels = c(
+    "Renda", "Idade", "Aprovação do PT", "Ideologia"
+  ))
+```
+
+De acordo com o gráfico, com coeficientes padronizados, avaliação do PT tem o maior efeito. A cada mudança de um desvio padrão na avaliação do PT, a aprovação de Bolsonaro aumenta em quase 0.5 pontos. Esse é o melhor jeito de comparar, dado que a padronização em termos de desvio padrão neutraliza a diferença de escala entre as variáveis.
+Logo em seguida, temos ideologia. A cada mudança de um desvio padrão na ideologia, a aprovação de Bolsonaro aumenta ppouco mais que 0.25 pontos.
+
+
+
+### Considerando que nosso interesse é apenas verificar a relação entre ideologia e aprovação a Bolsonaro, poderíamos excluir alguma variável do modelo? Justifique
+
+As variáveis Idade e Renda podem ser retiradas. Além de apresentarem signifcância menores, incluindo a falta de significãncia de Renda, possuem um efeito muito próximo de 0 quando padronizados.
+
