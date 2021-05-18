@@ -12,7 +12,8 @@
 # summary(rl)
 
 # confint(rl)  -  utiliza o erro padrão para calcular o intervalo de confiança com 95%. A partir dele, é possível ver se os
-# valores de beta e intercepto obedecem os intervalos.
+# valores de beta e intercepto obedecem os intervalos. Se os valores minimos e máximos passarem pelo 0, a variável não 
+# rejeita a hipótese nula.
 
 # y - predict(rl)
 
