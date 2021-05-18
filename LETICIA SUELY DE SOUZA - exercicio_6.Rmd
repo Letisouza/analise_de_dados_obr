@@ -52,6 +52,7 @@ summary(reg)
 ### Interprete o resultado da regressão (coeficientes, p-valores e medidas de ajuste do modelo)
 
 O intercepto indica um coeficiente de 4.29, indicando que esta é a aprovação de Bolsonaro, em média, quando todas as variáveis forem 0. O p-valor é bastante significativo, sendo quase 0.
+Mantendo constantes todas as outras variáveis, temos:
 A variável de ideologia tem um coeficiente positivo de 0.34, indicando que quanto mais à direita, maior é a aprovação à Bolsonaro. O p-valor é bastante significativo, atingindo quase 0.
 A variável de avaliação do PT tem relação negativa com aprovação de Bolsonaro, -0.39, indicando que tanto mior a nota de avaliação do PT, menor a aprovação de Bolsonaro. O p-valor também é bastante significativo, atingindo quase 0.
 A variável de idade do respondente do survey tem relação positiva com aprovação de bolsonaro, 0.01, indicando que quanto mais velho o responde, maior é a aprovação de Bolsonaro. O p-valor continua abstante significativo, apesar de ser ligeiramente maior o p-valor das variáveis anteriores.
