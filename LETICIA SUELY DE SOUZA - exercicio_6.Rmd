@@ -1,6 +1,6 @@
 ---
 title: "Exercício 6"
-author: "Rodrigo Martins"
+author: "Leticia Souza"
 date: "13/05/2021"
 output: html_document
 ---
