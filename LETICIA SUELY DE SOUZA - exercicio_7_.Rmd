@@ -1,0 +1,153 @@
+---
+title: "exercicio_7"
+author: "Leticia Souza"
+date: "18/05/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+### Carregue no R o banco de dados que está no seguinte endereço: <https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav>
+
+```{r}
+url <- "https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav"
+
+download.file(url, "banco.sav", mode = "wb")
+
+library(haven)
+library(tidyverse)
+
+banco <- read_sav("banco.sav") %>% mutate_all(zap_label)
+
+```
+
+Este banco de dados é o ESEB 2018, com dados eleitorais coletados por survey. Para mais detalhes sobre este banco, ver o seguinte endereço: <https://www.cesop.unicamp.br/por/eseb/ondas>
+
+### No exercício anterior, trabalhamos com a variável Q1607 (que indica uma nota de 0 a 10 ao candidato Jair Bolsonaro) e as variáveis Q18 (que indica uma auto-atribuição em uma escala ideologica de 0 a 10, da esquerda para a direita),  Q1501 (nota atribuída ao PT),  D1A_ID (idade do respondente) e D9 (renda do respondente). Agora utilizaremos também a variável D2_SEXO (sexo do respondente) e D12A (cor/raça)
+
+### Mantenha no banco de dados apenas as variáveis que serão utilizadas e as observações válidas para nossa exploração dos dados. As variáveis, Q1607, Q18 e Q1501 com valores acima de 10 representam respostas não uteis para nossa pesquisa, assim como os valores iguais ou maiores que 9999998 na variável D9, e iguais a 8 e 9 na varíavel D12A.
+
+```{r}
+banco <- banco %>% 
+  select(Q1607, Q18, Q1501, D1A_ID, D9, D2_SEXO, D12A) %>% 
+  filter(Q1607 <= 10,
+         Q18 <= 10,
+         Q1501 <= 10,
+         D9 != 9999998,
+         D12A <= 5)
+```
+
+### Abaixo estamos convertendo as variáveis D2_SEXO e D12A em fatores, pois no banco de dados original elas estão como numéricas, e tirando as labels das variaveis numericas Q18 e Q1501 (para não dar erro quando gerar gráficos de interação)
+
+```{r}
+banco <- banco %>%
+  mutate(D2_SEXO = as_factor(D2_SEXO),
+         D12A = as_factor(D12A),
+         Q18 = zap_labels(Q18),
+         Q1501 = zap_labels(Q1501))
+```
+
+### Estime esta regressão linear utilizando aprovação de Bolsonaro como variável dependente e as variáveis Q18, Q1501, D1A_ID, D9, D2 e religiao(D12A?) como as independentes, e interprete o resultado  (coeficientes, p-valores e medidas de ajuste do modelo)
+
+```{r} 
+reg <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 + D2_SEXO + D12A, banco)
+summary(reg)
+```
+
+A regressão revela e confirma alguns dados como significantes, enquanto outros se mostram insignificantes a nível de p-valor.
+O intercepto indica um efeito médio de 4.19 pontos na aprovação de Bolsonaro quando todas as variáveis inclusas no modelo forem 0. Ou seja, indica a posição de um homem preto de esquerda com baixa renda, pouca idade e aprovação baixa ao PT. P-valor é significativo.
+O aumento de uma unidade em ideologia revela um efeito médio de 0,34 pontos na aprovação do presidente, controlando pelas outras variáveis. Seu p-valor é significativo.
+O aumento de uma unidade na aprovação do PT conduz a uma diminuição média de 0,38 pontos na aprovação de Bolsonaro, controlando pelas outras variáveis. Seu p-valor é bastante significativo.
+O aumento da idade do indivíduo conduz a um aumento médio de 0,014 pontos na aprovação de Bolsonaro, controlando pelas outras variáveis. Seu p-valor também é significativo.
+A renda não tem efeito significante. O coeficiente indica que o aumento de uma unidade na renda diminui, em média, 1.33^-8 pontos na aprovação de Bolsonaro, controlando pelas outras variáveis.
+Passando para as variáveis categóricas, vemos o efeito de sexo e raça.
+Sexo indica que ser mulher tem a capacidade de diminuir a aprovação de Bolsonaro, em média, em 0,69 pontos, controlando pelas outras variáveis. Ser homem, portanto, teria esse mesmo efeito médio, mas em termos de aumento na aprovação. O p-valor é bem significante.
+Na raça, temos preto como categoria de referência, e controla-se também pelas demais variáveis. Pardos, amarelos e índios possuem p-valor significativo. O primeiro tem efeito médio de 0,50 pontos na aprovação de Bolsonaro em comparação a pretos; o segundo tem efeito médio de 1.05 em comparação a pretos; e o terceiro tem efeito de 0,90 em comparação a pretos. A comparação entre brancos e pretos não possui significância estatística, mas apresenta um efeito médio de 0,36 pontos na aprovação de Bolsonaro.
+
+O R² é 0.294, indicando que o modelo explica pouco mais de 29% da arovação de Bolsonaro. Esse valor não é muito diferente do R² ajustado, 0.290, que pondera a explicação do modelo em termos de cada variável incluída. O modelo, em si, consegue explicar muito pouco, apesar de ser estatisticamente significativo.
+
+### Represente graficamente os coeficientes estimados e comente a diferença entre cada uma das categorias de cor/raça
+
+```{r}
+library(sjPlot)
+
+plot_model(reg,
+           title = "Aprovação de Bolsonaro",
+           axis.labels = c("Índio", "Amarelo", "Branco", "Pardo", "Feminino", "Renda", "Idade", "Aprovação do PT", "Ideologia"))
+```
+Entre si, nenhuma das categorias de raça possui diferença quando relacionadas à aprovação de pretos. Isso é possível de ver pelas linhas horizontais que indicam o intervalo de confiança. Inclusive, com exceção de pardo, todas as outras categorias cruzam o zero, tornando-as não significantes.
+
+
+## Faça o mesmo modelo, porém agora com uma interação entre conservadorismo(ideologia?) e avaliação ao PT, interpretando o resultado da interação a partir de uma representação gráfica
+
+```{r}
+reg1_int <- lm(Q1607 ~ Q18 * Q1501 + D1A_ID + D9 + D2_SEXO + D12A, banco)
+summary(reg1_int)
+
+plot_model(reg1_int, type = "pred",
+           terms = c("Q18", "Q1501"),
+           banco,
+           title = "",
+           axis.title = c("Ideologia", "Aprovação de Bolsonaro"),
+           legend.title = " Aprovação do PT"
+           )
+```
+A interação apresenta o resultado de uma pessoa de direita que avalia muito bem o PT. No modelo de regressão, vemos um efeito médio de 0.01 a menos na aprovação de Bolsonaro, controlando pelas demais variáveis. O P-valor também é significativo.
+Pelo gráfico, podemos fazer uma avaliação horizontal e vertical. Na horizontal, vemos que as três escalas de aprovação à Bolsonaro possuem diferença signficativa dentro de cada recorte feito, já que os intervalos de confiança não se sobrepoem. Ou seja, pessoas com índices de aprovação do PT baixo e de direita aprovam mais Bolsonaro que pessoas que são de direita e possuem uma aprovação do PT alta.
+Contudo, numa análise vertical, entre os grupos de aprovação do PT, vemos que para pessoas de esquerda, a aprovação à Bolsonaro não é afetada pela aprovação do PT. Esse efeito só é detectado mesmo em pessoas de direita.
+
+
+## Troque a interação por uma interação entre conservadorismo(ideologia?) e sexo, interpretando o resultado da interação a partir de uma representação gráfica
+
+```{r}
+reg2_int <- lm(Q1607 ~ Q18 * D2_SEXO + Q1501 + D1A_ID + D9 + D12A, banco)
+summary(reg2_int)
+
+plot_model(reg2_int, type = "pred",
+           terms = c("Q18", "D2_SEXO"),
+           banco,
+           title = "",
+           axis.title = c("Ideologia", "Aprovação de Bolsonaro"),
+           legend.title = "Gênero"
+           )
+
+```
+A regressão apresenta um coeficiente não significante que indica que mulheres de direita tem um efeito médio de 0.071 pontos a menos na aprovação de Bolsonaro, controlando pelas demais variáveis. Pelo gráfico, vemos que os intervalos de confiança se sobrepoem. 
+Numa análise horizontal, a aprovação de bolsonaro de fato é diferente entre homens de esquerda e direita, o último aprovando Bolsonaro muito mais. Para mulheres, apesar das linhas mais grossas, aprovação à Bolsonaro também é afetada pelo gênero em consonância com sua idelogia, havendo mais aprovação à Bolsonaro em mulheres de direita.
+Já numa analise vertical, não há diferença significativa entre a aprovação de mulheres e homens, em nenhum pontos da escala ideológica. Elas se afastam mais entre mulheres e homens de direita, onde mulheres tendem a aprovar menos, mas a diferença não é significante. Para homens e mulheres de esquerda, a provação à Bolsonaro é muito parecida, sendo sistematicamente baixa.
+
+
+## Troque a interação por uma interação entre sexo e cor/raça, interpretando o resultado da interação a partir de uma representação gráfica
+
+```{r}
+reg3_int <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 +  D2_SEXO * D12A, banco)
+summary(reg3_int)
+
+plot_model(reg3_int, type = "pred",
+           terms = c("D12A", "D2_SEXO"),
+           banco,
+           title = "",
+           axis.title = c("", "Aprovação de Bolsonaro"),
+           legend.title = "Gênero"
+           )
+```
+
+Nessa interação, controlando pelas demais variáveis, apenas mulheres amarelas, comparando com homens pretos, possuem significância estatística. Mulheres pardas, também comparando com homens negros, apresentam um coeficiente de efeito médio negativo na aprovação de Bolsonaro.
+No gráfico, podemos ver uma relação horizontal não signficativa entre grupos. Mulheres e homens de raças diferentes não apresentam diferença estatística na aprovação de Bolsonaro, visto que seus intervalos de confiança se sobrepoem. Numa análise vertical, vemos que apenas homens e mulheres pardas possuem significância estatística para comprovar a diferença na aprovação, indicando que homens pardos aprovam Bolsonaro mais que mulheres pardas. Em todos os outros grupos, mulheres e homens votam parecido. 
+A relação vista entre amarelas e pretos não se revela no gráfico, apesar de se comportarem, visualmente, de maneira distinta.
+
+
+```{r}
+plot_model(reg3_int, type = "pred",
+           terms = c("D2_SEXO", "D12A"),
+           banco,
+           title = "",
+           axis.title = c("", "Aprovação de Bolsonaro"),
+           legend.title = ""
+           )
+```
+
+Nesse formato, o gráfico continua trazendo os mesmo resultados, mas agora dividindo por gênero.
+
