@@ -21,6 +21,7 @@ library(haven)
 banco <- read_sav("banco.sav")
 ```
 
+
 Este banco de dados é o ESEB 2018, com dados eleitorais coletados por survey. Para mais detalhes sobre este banco, ver o seguinte endereço: <https://www.cesop.unicamp.br/por/eseb/ondas>
 
 ### No exercício anterior, trabalhamos com a variável Q1607 (que indica uma nota de 0 a 10 ao candidato Jair Bolsonaro) e a variável Q18 (que indica uma auto-atribuição em uma escala ideologica de 0 a 10, da esquerda para a direita). Agora vamos trabalhar também com as variáveis Q1501, relativa a nota atribuída ao PT, D1A_ID, que indica a idade do respondente, e D9, com a renda do respondente.
