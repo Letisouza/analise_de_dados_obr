@@ -134,6 +134,7 @@ plot_model(reg3_int, type = "pred",
            )
 ```
 
+
 Nessa interação, controlando pelas demais variáveis, apenas mulheres amarelas, comparando com homens pretos, possuem significância estatística. Mulheres pardas, também comparando com homens negros, apresentam um coeficiente de efeito médio negativo na aprovação de Bolsonaro.
 No gráfico, podemos ver uma relação horizontal não signficativa entre grupos. Mulheres e homens de raças diferentes não apresentam diferença estatística na aprovação de Bolsonaro, visto que seus intervalos de confiança se sobrepoem. Numa análise vertical, vemos que apenas homens e mulheres pardas possuem significância estatística para comprovar a diferença na aprovação, indicando que homens pardos aprovam Bolsonaro mais que mulheres pardas. Em todos os outros grupos, mulheres e homens votam parecido. 
 A relação vista entre amarelas e pretos não se revela no gráfico, apesar de se comportarem, visualmente, de maneira distinta.
