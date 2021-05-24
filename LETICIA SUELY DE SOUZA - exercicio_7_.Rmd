@@ -83,7 +83,7 @@ Entre si, nenhuma das categorias de raça possui diferença quando relacionadas 
 ## Faça o mesmo modelo, porém agora com uma interação entre conservadorismo(ideologia?) e avaliação ao PT, interpretando o resultado da interação a partir de uma representação gráfica
 
 ```{r}
-reg1_int <- lm(Q1607 ~ Q18 * Q1501 + D1A_ID + D9 + D2_SEXO + D12A, banco)
+reg1_int <- lm(Q1607 ~ Q18 * Q1501 + Q18 + Q1501 + D1A_ID + D9 + D2_SEXO + D12A, banco)
 summary(reg1_int)
 
 plot_model(reg1_int, type = "pred",
@@ -102,7 +102,7 @@ Contudo, numa análise vertical, entre os grupos de aprovação do PT, vemos que
 ## Troque a interação por uma interação entre conservadorismo(ideologia?) e sexo, interpretando o resultado da interação a partir de uma representação gráfica
 
 ```{r}
-reg2_int <- lm(Q1607 ~ Q18 * D2_SEXO + Q1501 + D1A_ID + D9 + D12A, banco)
+reg2_int <- lm(Q1607 ~ Q18 * D2_SEXO + Q18 + D2_SEXO + Q1501 + D1A_ID + D9 + D12A, banco)
 summary(reg2_int)
 
 plot_model(reg2_int, type = "pred",
@@ -122,7 +122,7 @@ Já numa analise vertical, não há diferença significativa entre a aprovação
 ## Troque a interação por uma interação entre sexo e cor/raça, interpretando o resultado da interação a partir de uma representação gráfica
 
 ```{r}
-reg3_int <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 +  D2_SEXO * D12A, banco)
+reg3_int <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 + D2_SEXO + D12A + D2_SEXO * D12A, banco)
 summary(reg3_int)
 
 plot_model(reg3_int, type = "pred",
@@ -135,7 +135,7 @@ plot_model(reg3_int, type = "pred",
 ```
 
 
-Nessa interação, controlando pelas demais variáveis, apenas mulheres amarelas, comparando com homens pretos, possuem significância estatística. Mulheres pardas, também comparando com homens negros, apresentam um coeficiente de efeito médio negativo na aprovação de Bolsonaro.
+Nessa interação, controlando pelas demais variáveis, apenas mulheres amarelas, comparando com homens pretos, possuem significância estatística no corte de p-valor 0.1. Mulheres pardas, também comparando com homens negros, apresentam um coeficiente de efeito médio negativo na aprovação de Bolsonaro.
 No gráfico, podemos ver uma relação horizontal não signficativa entre grupos. Mulheres e homens de raças diferentes não apresentam diferença estatística na aprovação de Bolsonaro, visto que seus intervalos de confiança se sobrepoem. Numa análise vertical, vemos que apenas homens e mulheres pardas possuem significância estatística para comprovar a diferença na aprovação, indicando que homens pardos aprovam Bolsonaro mais que mulheres pardas. Em todos os outros grupos, mulheres e homens votam parecido. 
 A relação vista entre amarelas e pretos não se revela no gráfico, apesar de se comportarem, visualmente, de maneira distinta.
 
@@ -150,5 +150,5 @@ plot_model(reg3_int, type = "pred",
            )
 ```
 
-Nesse formato, o gráfico continua trazendo os mesmo resultados, mas agora dividindo por gênero.
+Nesse formato, o gráfico continua trazendo os mesmos resultados, mas agora dividindo por gênero.
 
