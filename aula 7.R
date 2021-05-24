@@ -104,7 +104,7 @@ plot_model(reg_interacao, type = "pred", # Type apresenta os valorer ´preditos 
           terms = c("conservatism", "gender"), # variaveis interagindo, numerica antes de categorica
            banco)
 
-# no fim do gráfico, é possível ver que os intervalos de conaça (sombra das retas) se soprepoem.
+# no fim do gráfico, é possível ver que os intervalos de confiança (sombra das retas) se soprepoem.
 # Isso prova que a interação não possui significãncia estatística, indicando que não há diferença entre homens e mulheres conservadores na aprovação de obama.
 
 
@@ -118,7 +118,7 @@ summary(reg_interacao2)
 #Interpretação: isoladas, conservadores com baixo conhecimento político; pessoas com alto conhecimento político e com conservadorismo baixo. 
 # Na interação, efeito médio de obama quando se trata de um conservador com alto conhecimento político.
 
-plot_model(reg_interacao2, type = "pred", # Type apresenta os valorer ´preditos da regressão para VD
+plot_model(reg_interacao2, type = "pred", # Type apresenta os valores preditos da regressão para VD
            terms = c("polknow_combined", "conservatism"), # variaveis interagindo, numerica antes de categorica
            banco)
 #Comparação vertical(entre linhas) e horizontal(na propria linha)
