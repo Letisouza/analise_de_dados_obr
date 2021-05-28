@@ -1,0 +1,149 @@
+---
+title: "Exercicio 8 - Pressupostos da regressão linear"
+author: "Leticia Souza"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+### Vamos partir do modelo sem interação estimado por vocês no último exercício
+
+```{r}
+url <- "https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav"
+
+download.file(url, "banco.sav", mode = "wb")
+
+library(haven)
+library(tidyverse)
+
+banco <- read_sav("banco.sav") %>% mutate_all(zap_label)
+
+library(tidyverse)
+
+banco <- banco %>% 
+  select(Q1607, Q18, Q1501, D1A_ID, D9, D2_SEXO, D12A) %>%
+  filter(Q1607 <= 10,
+         D9 < 9999998,
+         Q1501 <= 10,
+         Q18 <= 10,
+         D12A < 8) %>%
+  mutate(D2_SEXO = as_factor(D2_SEXO),
+         D12A = as_factor(D12A),
+         Q18 = zap_labels(Q18),
+         Q1501 = zap_labels(Q1501))
+
+regressao <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 + D12A + D2_SEXO, data = banco)
+
+```
+
+
+### Verifique graficamente o pressuposto de homoscedasticidade do modelo estimado e comente o resultado.
+
+```{r}
+plot(regressao, 3)
+```
+
+O gráfico apresenta os valores estimados da regressão no eixo x e os resíduos padronizados no eixo y. A linha vermelha curvada e a disposição dos pontos de maneira heterogênea em relação á linha demonstram uma heterocedasticidade do modelo. A distribuição dos resíduos não é homogênea, implicando que algo além da aleatoriedade está afetando essa distribuição do erro.
+
+```{r}
+plot(regressao, 1)
+```
+
+Neste outro teste, o eixo y apresenta os resíduos não padronizados. É possível perceber a heterocedasticidade com base na distribuição dos pontos de forma desigual ao comparar os grupos acima e abaixo da linha.
+
+### Verifique o pressuposto de homoscedasticidade do modelo estimado realizando os dois testes estatísticos e comente o resultado
+
+```{r}
+library(lmtest)
+bptest(regressao)
+
+library(car)
+ncvTest(regressao)
+```
+
+Nos dois testes acima, é possível ver, estatísticamente, se a hipótese nula de que o modelo é homocedástico pode ou não ser rejeitada. Em ambos os modelos, o p-valor é baixíssimo, indicando que a hipótese da homocedasticidade deve ser rejeitada.
+
+
+### Caso seja necessário, com base nas suas conclusões anteriores, faça a correção das estimativas do modelo
+
+```{r}
+confint(regressao)
+
+
+library(sandwich)
+coeftest(regressao,
+         vcov = vcovHC(regressao, type = "HC3"))
+```
+         
+### Compare os resultados corrigidos com os resultados sem correção e comente as diferenças
+```{r}
+summary(regressao)
+```
+
+Comparando os resultados do primeiro sumário da regressão feito acima com os resultados deste teste, percebemos uma mudança nos erros e nos testes estatítico t e p-valor. As principais mudanças são relacionadas à variável idade(D1A_ID), que em vez de sofrer um aumento no erro, como as demais variáveis estatisticamente significantes, sobre uma diminuição, e à variável renda(D9), que deixa de ser significativa.
+
+
+### Verifique graficamente o pressuposto de linearidade dos parâmetros estimados pelo modelo e comente o resultado
+
+```{r}
+plot(regressao, 1)
+```
+
+O gráfico apresenta os valores estimados no eixo x e os resíduos no eixo y. Apesar de oscilar num movimento "semelhante" a um comportamento senoidal suavizado, a linha vermelha se mantém bastante próxima da linha tracejada, indicando que o modelo não é perfeitamente linear, mas não fugindo de maneira expressiva.
+
+### Verifique graficamente o pressuposto de autocorrelação do modelo e comente o resultado
+
+```{r}
+acf(regressao$residuals)
+```
+
+O gráfico mostra que a segunda, sétima e décima nona linhas verticais ultrapassam as linhas tracejadas azuis. Apesar de ser muito marginal, isso indica que há certa autoccorelação presente no modelo. Algumas outras linhas chegam muito próximo, mas não chegam a ultrapassá-la.
+
+### Verifique o pressuposto de autocorrelação do modelo com o teste estatístico e comente o resultado
+
+```{r}
+durbinWatsonTest(regressao)
+```
+
+O teste estatístico mostra se a hipótese nula que não há autocorrelação no modelo pode ou não ser rejeitada. Como vemos, o p-valor baixo rejeita a hipótese nula, indicando que a autocorrelação existe.
+
+### Verifique graficamente o pressuposto de normalidade dos resíduos e comente o resultado
+
+```{r}
+plot(regressao,2)
+```
+
+O gráfico apresenta os valores estimados no eixo x e os resíduos padronizados no eixo y. Ele mostra visualmente se o erros estão distribuidos normalmente ou não, a depender do seu alinhamento com a linha tracejada. Nesse caso, vemos que há bastante oscilação dos casos, trazendo até alguns casos mais distantes, indicando que os erros não estão normalmente distribuidos.
+
+```{r}
+banco[843, ]
+regressao$residuals[843]
+banco[1187, ]
+regressao$residuals[1187]
+banco[154, ]
+regressao$residuals[154]
+```
+
+São, em ordem:
+o caso de um homem pardo de esquerda, jovem, com boa renda que desaprova Bolsonaro e aprova o PT;
+o caso de uma mulher parda de direita, jovem, com renda razoável, que aprova Bolsonaro e desaprova o PT;
+o caso de uma mulher negra de direita, de meia idade, renda baixa, que aprova muito Bolsonaro e desaprova o PT.
+
+### Verifique o pressuposto de normalidade dos resíduos com o teste estatístico e comente o resultado
+
+```{r}
+library(MASS)
+
+resid <- studres(regressao)
+shapiro.test(resid)
+```
+
+O teste estatístico busca identificar se é possível rejeitar a hipótese nula de que há normalidade no modelo. Com o p-valor do teste, é possível descartar essa hipótese, confirmando que não há normalidade nos resíduos. Isso pode indicar problemas com viés de amostragem e afeta a generalização dos resultados.
+
+### A partir do texto de Figueiredo Filho e co-autores, quais medidas podem ser feitas para solucionar os problemas encontrados?
+
+Sobre a normalização dos erros, os autores indicam duas transformações nos dados: a) raiz quadrada de Y e b) variáveis independentes em forma logarítimica. Primeiro muda-se a variavel dependente, e se os resíduos permanecerem com distribuição não normal, sugere-se transformar as variáveis independentes.
+
+No geral, suas indicações são sempre realizar alguma transformação nas variáveis, realizar alguma recodificação para consertar uma mensuração indevida e o aumento do N na tentativa de normalizar a distribuição da amostra e diminuir os erros e, assim, os intervalos de confiança.
