@@ -1,0 +1,108 @@
+---
+title: "Exercicio 10"
+author: "Leticia Souza"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+## Vamos continuar trabalhando com os dados do ESEB 2018 e com o modelo anterior, utilizando afinidade com Bolsonaro como variável dependente (Q1607) e as variáveis ideologia (Q18), afinidade com o PT (Q1501), idade (D1A_ID), renda (D9), sexo (D2_SEXO) e cor/raça (D12A) como as independentes
+
+```{r}
+options(scipen = 999)
+
+url <- "https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav"
+
+download.file(url, "banco.sav", mode = "wb")
+
+library(haven)
+library(tidyverse)
+library(sjPlot)
+
+
+banco <- read_sav("banco.sav") %>% 
+  mutate_all(zap_label) %>%
+  select(Q1607, Q18, Q1501, D1A_ID, D9, D2_SEXO, D12A, P20) %>%
+  filter(Q1607 <= 10,
+         D9 < 9999998,
+         Q1501 <= 10,
+         Q18 <= 10,
+         P20 <= 2,
+         D12A < 8) %>%
+  mutate(D2_SEXO = as_factor(D2_SEXO),
+         D12A = as_factor(D12A),
+         Q18 = zap_labels(Q18),
+         Q1501 = zap_labels(Q1501),
+         P20 = case_when(P20 == 1 ~ "Combate a corrupção",
+                         P20 == 2 ~ "Não combate a corrupção"))
+
+regressao <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 + D12A + D2_SEXO, data = banco)
+
+summary(regressao)
+```
+
+## Observe graficamente a distribuição da variável de renda (D9) e em seguida a distribuição da mesma variável tranformada em log (use a função `log()` indicando a variável dentro dos parênteses)
+
+```{r}
+ggplot(banco, aes(D9)) +
+  geom_histogram() +
+  theme_classic() +
+  labs(x = "Renda",
+       y = "")
+```
+
+```{r}
+ggplot(banco, aes(log(D9))) +
+  geom_histogram() +
+  theme_classic() +
+  labs(x = "Renda",
+       y = "")
+```
+
+
+## Faça uma regressão linear com as mesmas variáveis contidas na regressão anterior, no entanto transformando a variável de renda em log. Interprete o coeficiente estimado desta variável e compare o resultado com o modelo anterior.
+
+```{r}
+reg_logrenda <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + log(D9) + D12A + D2_SEXO, data = banco)
+summary(reg_logrenda)
+
+(.29)/100
+```
+
+_Na primeira regressão, vemos que renda tem um efeito significativo, negativo e muito baixo na variável dependente, de modo que aumentar um real diminui o apoio em Bolsonaro em 0.00005 na média na escala da variável, mantendo as outras variáveis constantes._
+
+_Na segunda regressão, vemos que renda continua tendo um efeito significativo, negativo e muito baixo na variável dependente, mas a transformação significa que a mudança de um ponto percentual na renda gera uma diminuição na média de aprovação de Bolsonaro em 0.002 pontos na escala da variável, mantendo as outras variáveis constantes._
+
+## Suponha que teoricamente você acredite que o apoio à Operação Lava Jato seria uma variável importante com impacto na afinidade com Bolsonaro, considerando que quanto maior o apoio à Lava Jato, maior a afinidade com Bolsonaro. Suponha também que o apoio à Lava Jato esteja negativamente correlacionada com a variável de afinidade ao PT, ou seja, quanto maior o apoio a Lava Jato, menor a afinidade com PT (para simplificar o exercício, assuma que só existam essas associações relativas a variável de apoio a Lava Jato). Qual seria a consequencia da omissao dessa variavel nos parâmetros estimados pela regressão? 
+
+_Sobre a variável omitida Lava jato, dado que afinidade com Bolsonaro é, teoricamente, positivamente correlacionada com ela, e que afinidade com o PT seria negativamente correlacionada com ela, a variável de afinidade com o PT seria viesada negativamente, subestimando seu beta no modelo._
+
+
+## Na ausência de uma variável de afinidade com a Lava Jato, considere a possibilidade de assumir a variavel P20 como uma proxy, que faz a seguinte pergunta: "Na sua opinião, a Operação Lava-Jato combate ou não combate a corrupção?". Qual seria o pressuposto que deveríamos assumir para que esta seja uma boa proxy?
+
+_O pressuposto seria de que essa proxy é correlacionada com o que desejamos observar sem ser perfeitamente correlacionada com as outras variáveis do modelo._
+
+## Faça uma regressão incluindo esta variável no modelo e compare o resultado com a regressão anterior. A alteração se deu no sentido esperado?
+
+```{r}
+reg_proxy <- lm(Q1607 ~ Q18 + Q1501 + P20 + D1A_ID + D9 + D12A + D2_SEXO, data = banco)
+summary(reg_proxy)
+```
+
+_Comparando o modelo novo com o anterior, vemos que a média do resíduo diminuiu, o R² ajustado aumentou e o efeito de afinidade com o PT diminuiu ligeiramente (de -0.397 para -0.381), o que vai contra a expectativa descrita na questão anterior de que a omissão subestima o efeito._
+_(Digo que diminui dado que a interpretação desses coeficientes usa o sinal apenas para indicar a direção do efeito, mas entendo que o coeficiente novo é maior que o coeficiente anterior em termos puramente matemáticos, e ai assim confirmaria a expectativa. Tive dúvida em como colocar isso, então explico aqui como entendi)._
+
+## Faça um gráfico representando nos eixos X e Y as variáveis Ideologia (Q18) e afinidade com Bolsonaro (Q1607), discriminando ao mesmo tempo em paineis o sexo do/da respondente (D2_SEXO) e a resposta dada a pergunta relativa a Lava Jato (P20)
+
+```{r}
+ggplot(banco, aes(Q18, Q1607)) +
+  labs(x = "Ideologia",
+       y = "Afinidade com o PT") +
+  geom_jitter(size = 2) +
+  facet_grid(D2_SEXO ~ P20) +
+  theme_light()
+```
+
+
