@@ -1,0 +1,155 @@
+---
+title: "Exercicio 9"
+author: "Leticia Souza"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
+```
+
+## Vamos continuar trabalhando com os dados do ESEB 2018 e com o modelo anterior, utilizando aprovação de Bolsonaro como variável dependente (Q1607) e as variáveis ideologia (Q18), afinidade com o PT (Q1501), idade (D1A_ID), renda (D9), sexo (D2_SEXO) e cor/raça (D12A) como as independentes
+
+```{r}
+options(scipen = 999)
+
+url <- "https://github.com/MartinsRodrigo/Analise-de-dados/raw/master/04622.sav"
+
+download.file(url, "banco.sav", mode = "wb")
+
+library(haven)
+library(tidyverse)
+
+banco <- read_sav("banco.sav") %>% 
+  mutate_all(zap_label) %>%
+  select(Q1607, Q18, Q1501, D1A_ID, D9, D2_SEXO, D12A) %>%
+  filter(Q1607 <= 10,
+         D9 < 9999998,
+         Q1501 <= 10,
+         Q18 <= 10,
+         D12A < 8) %>%
+  mutate(D2_SEXO = as_factor(D2_SEXO),
+         D12A = as_factor(D12A),
+         Q18 = zap_labels(Q18),
+         Q1501 = zap_labels(Q1501))
+
+regressao <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 + D12A + D2_SEXO, data = banco)
+
+summary(regressao)
+```
+
+## Avalie a multicolinearidade da regressão e explique sua conclusão
+
+```{r}
+library(car)
+vif(regressao)
+```
+
+O teste VIF(variance inflation factor) mede o quanto de multicolinearidade existe nas variáveis independentes. Quanto mais próximo de 1, menos multicolinearidade existe entre as variáveis. Se acordo com os resultados, as variáveis não possuem multicolinearidade, visto que todas as variáveis são ligeiramente maior que 1.
+
+## Faça um gráfico de boxplot de cada uma das variáveis numéricas, e identifique a presença ou ausência de outliers.
+
+```{r}
+ggplot(banco, aes(Q18, Q1607)) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(x = "Ideologia",
+       y = "Aprovação de Bolsonaro")
+```
+
+O gráfico acima representa a relação entre aprovação de Bolsonaro e ideologia. Não há nenhum caso outlier.
+
+```{r}
+ggplot(banco, aes(Q1501, Q1607)) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(x = "Afinidade com o PT",
+       y = "Aprovação de Bolsonaro")
+```
+
+O gráfico acima representa a relação entre aprovação de Bolsonaro e afinidade com o PT. Não há nenhum caso outlier.
+
+```{r}
+ggplot(banco, aes(D1A_ID, Q1607)) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(x = "Idade",
+       y = "Aprovação de Bolsonaro")
+```
+
+O gráfico acima representa a relação entre aprovação de Bolsonaro e idade. Não há nenhum caso outlier.
+
+```{r}
+ggplot(banco, aes(D9, Q1607)) +
+  geom_boxplot() +
+  theme_classic() +
+  labs(x = "Renda",
+       y = "Aprovação de Bolsonaro")
+```
+
+O gráfico acima representa a relação entre aprovação de Bolsonaro e renda. Não há nenhum caso outlier.
+
+## Observe graficamente os resíduos do modelo e diga sua conclusão
+```{r}
+library(olsrr)
+ols_plot_resid_stud(regressao)
+
+```
+
+O gráfico apresenta os resíduos estudantilizados dos casos no modelo em azul. O threshold é 3, destacado pelas linhas vermelhas. Como nenhuma das barras azuis passa das linhas vermelhas, é possível dizar que não há resíduos distantes da média de erro.
+
+
+## Observe graficamente a medida de Cook´s distance das observações e diga sua conclusão
+
+```{r}
+plot(regressao, 4)
+```
+
+```{r}
+ols_plot_cooksd_chart(regressao)
+```
+
+Os dois gráficos apresentam casos influentes, ou seja, casos que modificam muito os coeficientes estimados, erro padrão e/ou R² da regressão. A linhas verticais são casos e, quanto mais altas forem, mais influente são esses casos. No gráfico 2, um threshold é adicionado, esta linha vermelha. Nele, as linhas azuis que ultrapassarem a linha vermelha indicam casos potencialmente influentes.
+Portanto, apesar dos resíduos estarem dentro da média e não haver outliers nas fases anteriores, há alguns casos influentes. O caso 1421 é bastante influente.
+
+## Faça os gráficos de resíduos x leverage e diga sua conclusão
+
+```{r}
+ols_plot_resid_lev(regressao)
+```
+
+Neste gráfico, podemos identificar casos com resíduos fora da média, posicionados ao lado esquerdo, dentro das linhas horizontais e a vertical; casos com leverage alto estão posicionados al lado direito, entre as linhas horizontais e a linha vertical. Os casos influentes estão ao lado direito, acima da linha horizontal de cima e abaixo da linha horizontal de baixo, depois da linha vertical. Por fim, os casos normais são os azuis. Inclusive, uma outra forma de vizualizar é pelas cores mostradas na legenda do gráfico.
+Muitos casos estão presentes como leverage e influentes. O caso 1421 é bastante influente.
+
+## Faça o gráfico que exiba o DFFITS e diga sua conclusão
+
+```{r}
+ols_plot_dffits(regressao)
+```
+
+Neste gráfico, as linhas azuis de casos que ultrapassam os tresholds indicados pelas linhas vermelhas são considerados casos influentes. Esse teste indica a diferença da média de erro quando casos influentes são retirados. O caso 1421 é bastante influente. 
+
+
+## Faça o gráfico que exiba o DFBETAS e diga sua conclusão
+```{r}
+ols_plot_dfbetas(regressao, print_plot = F)
+```
+ 
+Esse teste indica a diferença nos betas das variáveis quando casos influentes são retirados. Com exceção da variável renda, com apenas alguns, todas as variáveis apresentam muitos casos influentes. O caso 1421 se reprete como um caso bastante influente na maioria deles.
+
+## Faça uma regressão eliminando a observação que você considera mais influente e comente as diferenças no resultado da regressão
+```{r}
+banco2 <- banco %>% 
+  slice(-1421)
+
+regressao2 <- lm(Q1607 ~ Q18 + Q1501 + D1A_ID + D9 + D12A + D2_SEXO, banco2)
+summary(regressao2)
+
+```
+```{r}
+summary(regressao)
+```
+
+As mudanças são pequenas, já que há vários casos influentes e apenas um foi retirado, mas é possível observar mudanças na significância dos coeficientes, nos betas em si, na média dos resídios e no R².
+ 
+ 
