@@ -1,0 +1,955 @@
+---
+title: "Asilo na França"
+author: "Leticia Suely de Souza"
+date: "11 de agosto de 2021"
+output: html_document
+---
+
+```{r setup, include=F}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=F, message=F, warning=F} 
+# Pacotes
+library(readr)
+library(tidyverse)
+library(sjPlot)
+library(lmtest)
+library(car)
+library(MASS)
+library(olsrr)
+```
+
+## Introdução
+
+  Este trabalho é o projeto final da disciplina de Análise de Dados ministrada pelo professor Rodrigo Martins. O objetivo é implementar a regressão linear como ferramenta para identificar alguma associação ou causalidade entre variáveis, além de incluir alguns testes para acessar a robustez do modelo.
+  
+  Neste sentido, o presente projeto busca compreender o que influencia na concessão de asilo na França. O país é destino de muitos imigrantes e refugiados, e sofre com os impactos desse fluxo de pessoas há muito tempo. Desde 2015, quando a crise de refugiados se tornou ainda mais delicada, o país, em conjunto com a União Europeia (EU), buscou criar mecanismos que facilitassem o trânsito e o acolhimento dessas pessoas, mas isso não significa que algo realmente favorável foi feito na prática.
+  
+  Assim, o bojetivo modesto desse projeto é testar se a cidadania, ou seja, a região de origem desses imigrantes, tem algum impacto no nível de aceitação francês. Além disso, o gênero também é testado. Um segundo modelo de regressão interage as duas variáveis, buscando entender se essa combinação de gênero e cidadania tem algum impacto. São utilizados dados de aproximadamente 150 países ao longo de 20 anos (2010-2019).
+
+## Fluxo Migratório e Políticas de Integração
+
+  A frança é um país com 8.5 milhões de migrantes internacionais, correspondendo a 13,1% da população geral (Migration Data Portal, 2021). Essa realidade traz desafios importantes para a gestão da migração no país, tanto por questoes internas, como políticas e atitudes da sociedade, quanto por questões externas, dado que a União Europeia possui legislações importantes sobre esta questão. 
+  
+  As teorias contemporêneas sobre migração refletem origens, causas e consequências econômicas, sociais e políticas, dentro de uma perspectiva micro, a nível individual, e macro, a nível de sociedade e desdobramentos mundiais, tanto no país de destino, como no país de saída (PICHÉ, 2013). A migração é pauta em aspectos econômicos como o mercado de trabalho, a mão-de-obra, investimento local, níveis de habilidades da população e remessas. Questões sociais se relacionam com a disputa maioria _versus_ minoria, estimuladas por efeitos étnicos, raciais e identitários que surgem como uma sensação de ameaça à cultura e instituições locais traziada pelos imigrantes. No que diz respeito a aspectos políticos, o caso dos refugiados é bem mais saliente; assimetrias de poder afetam o recebimento de refugiados, especialmente por nativos (maiorias) tenderem a rejeitar a chegada e acolhimento dessas pessoas (minorias) por percepções que não necessariamente se confirmam, além de governos também terem problemas para acompanhar necessidades e mudanças do processo migratório, a fim de aprimorar a gestão da migração (PICHÉ, 2013).
+  
+  Um dos principais mecanismos para lidar com a entrada de migrantes no país é através da integração. A integração é um processo de adaptação e acomodação de imigrantes em uma sociedade pela aceitação e inclusão desses indivíduos no sistema social e suas instituições, resultando numa interação entre minorias e maiorias detentoras de direitos e deveres (MODOOD, 2011; GRZYMALA-KAZLOWSKA E PHILLIMORE, 2017; PENNINX, 2019). Diferente da assimilação, processo em que os imigrantes modificam suas caracteŕisticas para se incluir na dinâmica social da sociedade receptora,  a integração depende de algum grau de acomodação institucional e fatores de aceitação coletivas, individuais e até de organizações civis (PENNINX, 2019). 
+  
+  Penninx (2019) descreve 3 dimensões de aceitação via integração: a) legal-política, que determina a possibilidade de obter residência e direitos políticos, regulando a escala de imigrantes ilegais e cidadãos; b) socioeconômica, sobre uma participação social e econômica independente de sua nacionalidade, concedendo acesso a uma presença ativa nessas áreas; e c) cultural-religiosa, acomodando percepções e práticas de imigrantes como uma reação recíproca de diversidade. 
+  
+  Todas essas dimensões demonstram uma tentativa de superar uma situação de rejeição e assimilação, e seguir para uma realidade que assegure aceitação e igualdade. Políticas de integração seriam, portanto, um esforço dos governos em conduzir o processo na direção desejada pela sociedade local. Suas instituições determinam quais os resultados mirados pela integração, o que deixa evidente como as duas partes, imigrantes e sociedade receptora, possuem assimetria de poder e recursos para influenciar a extensão dessas políticas (PENNINX, 2019). 
+  
+  Boas políticas de integração miram resultados em questões de desenvolvimento educacional, emprego, saúde, renda, habitação, capital social, capital cultural, segurança, qualidade de acomodação, etc. (GRZYMALA-KAZLOWSKA E PHILLIMORE, 2017). Elas são especialmente úteis em locais onde a diversidade é abrangente e intersecciona vários aspectos da vida associados à migração, favorecendo o multiculturalismo no processo transnacional de interação entre povos ou instituições para além das fronteiras estatais (VERTOVEC, 1999).
+  
+  Modood (2011) define multiculturalismo como um processo de integração em que as diferenças entre minorias e maiorias são reconhecidas, e há proposta de manutenção de direitos e deveres. Em uma perspectiva diferente, Kozakai e Wolter (2007) e Ward et al (2018) colocam o multiculturalismo como uma experiência de combinação de diversidade cultural e reconhecimento e apreciação dessa diversidade, que guiam a políticas e práticas para acomodá-la.  
+  
+  Essa perspectiva mais psicológica explica porque o multiculturalismo serve como um agente pacificador e de orgulho identitário, mas também gera isolamento social e ameaça à identidade nacional e aos valores liberais democráticos (WARD et al, 2018). Políticas de integração que valorizam o multiculturalismo dependem da percepção que grupos majoritários têm sobre discriminação e insegurança em relação às minorias, mas também à satisfação que ambos os grupos têm com essas propostas, reforçando que as condições para o multiculturalismo são o contexto de direitos individuaus. Na busca por reservar direitos das minorias e maiorias, a integração relaciona comunidades de forma igualitária, e estabelece uma visão de cidadania que inclui toda a diversidade dos cidadãos (MODOOD, 2011; WARD et al, 2018).
+
+  Essa discussão pavimenta o caminho para debates relacionando nacionalismo e soberania, especialmente quando se fala em migração. O nacionalismo é uma marca de identidade que simboliza um vínculo político entre indivíduo e Estado, e esse é um dos motivos para imigração internacional ser um tema político tão central (BRITO, 2013). Além do lado dos indivíduos, os Estados também possuem prerrogativas para tomarem certas decisões sobre imigração, especialmente quando se discute soberania.
+  
+  Segundo Reis (2004), “a autonomia do Estado no campo das migrações é uma das principais características do direito internacional tradicional” (REIS, 2004, p. 150). São os países que, em última instância, controlam a entrada e a saída de suas fronteiras. Os desdobramentos práticos podem ser diferentes quando distinguimos entre migrações forçadas (refugiados e asilo) ou não. Isso porque as regras que envolvem migrações forçadas giram em torno de regimes nacionais e internacionais, enquanto as migrações não forçadas dependem, majoritariamente, de regras internas.
+  
+  No caso da França, as políticas migratórias são influenciadas também pelas deliberações no parlamento europeu da União Europeia. Contudo, o bloco tende a priorizar a autonomia dos países nessas decisões, especialmente quando a migração não é forçada, visto que o centro da discussão é menos direitos humanos e mais governança de políticas de integração. Para entender isso melhor, é importante compreender os tipos de migração, que ao definir indivíduos que deixam um local em direção a outro, acessam conceitos como emigrantes, imigrantes, refugiados e asilados. 
+  
+  Emigrante faz referência àquele que sai de seu local de origem, enquanto imigrante é aquele que entra em um local onde não é nativo, ambos em escala municipal, estadual ou global. Com o fim da Segunda Guerra Mundial, os termos refugiado e asilado surgiram para enquadrar indivíduos que migram em razão de situações de risco. Segundo a Agência da ONU para Refugiados (ACNUR), refugiado é um status temporário concedido àqueles que saem de seu local de origem em função de conflitos armados, ameaça aos direitos humanos ou políticos, ou risco de vida. Já asilado é um status dado a todo refugiado que consegue permissão para se estabelecer em um dado país que se compromete a recebê-lo como um asilo de segurança. Refugiados e asilados se encaixam como casos de migração forçada, quando indivíduos deixam seu local de origem em decorr~encia de ameaças ou risco à vida.
+
+  Focando no caso das migrações forçadas, existem as chamadas soluções duráveis para o acolhimento desses refugiados: a) repatriação voluntária, quando os refugiados conseguem retornar ao seu país de origem; b) integração local, quando eles ganham residência permanente e direitos sociais e econômicos no país de asilo; e c) reassentamento, que é uma admissão legal em um país que oferece direitos sociais e econômicos aos refugiados que estão fora de seu território (FISHER, 2019).
+
+  As soluções duráveis envolvem, portanto, decisões que promovem segurança, direitos humanos básicos e um status legal de longo prazo no país de acolhimento. Mas há uma questão interessante envolvendo especificamente o reassentamento. Como os Estados são impossibilitados de penalizar refugiados que entram ilegalmente em seus territórios pelo princípio do non-refoulement, eles procuram formas de limitar a entrada desses indivíduos, evitando a obrigação legal com eles. Para além das barreiras de fronteira, os países usam programas de reassentamento como incentivo para a não entrada (FISHER, 2019).
+
+  Nesse mesmo trabalho, Fisher (2019) realiza um estudo de caso para a União Europeia, onde conclui que a partir de 2015, houve um esforço para desencorajar a imigração irregular e condicionar o processo de acolhimento no reassentamento, identificando que a concentração e retenção de refugiados na Turquia e na Grécia tem também o objetivo de manter os imigrantes nos centros de refugiados, conhecidos como hotspots.  A França, por exemplo, demonstra interesse em abrir um desses centros na Líbia, rota de vários africanos até o país e o resto da Europa (Global Citizen, 2017; FISHER, 2019).
+
+  Um ponto muito importante também é a securitização da migração. As políticas de integração e de asilo sofrem muito com essa atitude, visto que são induzidas por estratégias governamentais de barreiras nas fronteiras e por pautas midiáticas que exploram imigrantes como ameaças. Na França, depois da Guerra Fria, o aumento do número de migrantes e refugiados eram a justificativa para espalhar uma sensação de choque na sociedade, gerando uma securitização institucional, por meio de leis efetivas, e na prática, restringindo concessão de vistos, aumentando burocracias em centros de detenção, etc.(Bourbeau, 2015). Desse modo, junto às manifestações racistas e xenófobas na França, tem-se o crescimento de partidos de extrema direita como o Front National, que credita a ruína da cultura e economia francesa à imigração e propõe uma política de tolerância zero no que tange a essa temática. 
+  
+  Como resultado disso, acentua-se a segregação e a marginalização das comunidades de imigrantes e refugiados não só na França, como também em outras nações europeias. Conforme descreve Dalmáz (2016), apesar do esforço da União Europeia em construir instrumentos destinados a reafirmar o respeito ao multiculturalismo e aos direitos humanos, as marcas da intolerância ainda são um traço presente em muitos países do velho continente. Além disso, o fato de a UE não possuir uma política comum relativa à imigração faz com que muitos países fechem suas fronteiras, colocando em perigo a livre circulação e a construção de um espaço pautado na pluralidade social.
+  
+  Nesse sentido, os episódios de racismo e xenofobia que se sucedem na França e em outros Estados-membros do bloco, como Alemanha, Itália e Grécia, vêm ocupando um espaço cada vez mais pujante na conjuntura política. Esse cenário lança luz sobre a urgência de implementar políticas migratórias capazes de integrar adequadamente as populações de imigrantes e refugiados no território francês. Uma forma de enxergar e comprovar algum tipo de mudança no rumo francês em relação à migração forçada, especificamente, é através da análise de dados de asilo.
+  
+  
+  
+## Especificação Teórica
+
+  Este trabalho, portanto, busca compreender o que influencia na concessão de asilo na França. Para isso, usarei a razão entre os dados de contagem sobre concessão de asilo e a contagem dos pedidos realizados na França por país de origem, de 2010 a 2019. As variáveis que relacionarei a esta razão é cidadania e gênero. A ideia da análise é entender se existe algum tipo de influência ou preferência para a maior concessão de asilo ligadas a essas duas variáveis. Apesar de ser um trabalho com uma tendência mais exploratória, é possível dizer que há expectativas - termo melhor que hipóteses - sobre como: 1) A cidadania tem uma influência alta na concessão de asilo, e ser do Magrebe aumenta taxa de concessão; 2) Mulheres são mais aceitas que homens.
+
+  As mensurações são as mais próximas possíveis, aumentando a validade e a confiabilidade. A razão entre as concessões e os pedidos de asilo representam a taxa de aceitação de asilados no país; a cidadania e o gênero são dados declaratórios sobre os indivíduos. Portanto, isso garante a coerência da variável com o que se deseja mensurar; e também é possível utilizar esses mesmos dados para replicar meus resultados, dado que são de fácil acesso e bem estruturados. Uma melhor forma de ter esses dados seria a nível desagregado, por indivíduo, visto que estão reunidos por país. Ou até por mês, mesmo estando agregado por país.
+  
+    Gênero e Cidadania ---------------------------------------------------- Nível de conceção de asilo na França
+                           
+     A concessão de asilo é um tema sensível na França e necessita de mais exploração sobre o padrão de aceitação no país. Questões de macropolítica facilitariam uma taxa de aceitação maior da região do Magrebe, e pressuposições de gênero relacionadas à segurança facilitariam a entrada de mais mulheres que homens no geral.
+  
+  
+
+     1) A cidadania tem uma influência alta na concessão de asilo, e ser do Magrebe aumenta taxa de concessão; 
+     2) Mulheres são mais aceitas que homens.
+
+
+    Classificação masculino/feminino e país de origem --------------------- Taxa de aceitação de asilados
+  
+  
+
+## Metodologia e Dados
+
+  Os dados utilizados para análise são todos do Eurostat (2020), trazendo o universo de requerentes de asilo na França de 150 países compreendidos em 10 anos de registro cada. Eles se referem às decisões positivas em primeira instância para conceder o asilo, às aplicações ao asilo feitas pela primeira vez, à quantidade de indivíduos reassentados e aqueles que receberam proteção subsidirária - que é uma concessão de asilo àqueles que não se enquadram como refugiados -, o gênero e a cidadania dos indivíduos. A cidadania será agrupada nas determinadas regiões do mundo: América do Norte, América Central, América do Sul, Magrebe, África (todos os países do continente menos os do Magrebe), Oriente Médio, Ásia (todos os países do continente menos os do Oriente Médio) e Oceania. A Europa não particpa da análise por ter outras questões da União Europeia que condicionam a permissão de asilo. Os dados serão referentes aos anos 2010-2019; por 2020 ter sido um ano atípico para as migrações, dada a COVID-19, o ideal é não incluí-lo a fim de não identificar nenhum comportamento que não seja relacionado a condições políticas típicas do país.
+  
+
+```{r, include=F, message=F, warning=F}
+asylum_application <- read_csv("Dados/Asylum/First time asylum applicants/migr_asyappctza_1_Data.csv")
+asylum_accepted <- read_csv("Dados/Asylum/First instance decisions on applications_only positive decisions/migr_asydcfsta_1_Data.csv")
+resettled <- read_csv("Dados/Resettled/migr_asyresa_1_Data.csv")
+subsidiary_protection <- read_csv("Dados/All valid permits by subsidiary protection/migr_resvalid_1_Data.csv")
+```
+
+```{r, include=F, message=F, warning=F}
+resettled <- resettled %>% 
+  mutate(continent = dplyr::recode(CITIZEN, `AO` = "África", 
+                                    `CM` = "África", 
+                                    `CF` = "África", 
+                                    `TD` = "África", 
+                                    `CG` = "África", 
+                                    `CD` = "África", 
+                                    `GQ` = "África", 
+                                    `GA` = "África", 
+                                    `ST` = "África", 
+                                    `BI` = "África",
+                                    `KM` = "África", 
+                                    `DJ` = "África", 
+                                    `ER` = "África", 
+                                    `ET` = "África", 
+                                    `KE` = "África", 
+                                    `MG` = "África", 
+                                    `MW` = "África", 
+                                    `MU` = "Magrebe", 
+                                    `MZ` = "África", 
+                                    `RW` = "África", 
+                                    `SC` = "África", 
+                                    `SO` = "África", 
+                                    `UG` = "África", 
+                                    `TZ` = "África", 
+                                    `ZM` = "África",
+                                    `ZW` = "África",
+                                    `DZ` = "Magrebe", 
+                                    `EG` = "África", 
+                                    `LY` = "Magrebe", 
+                                    `MA` = "Magrebe", 
+                                    `SS` = "África", 
+                                    `SD` = "África", 
+                                    `TN` = "Magrebe", 
+                                    `EH` = "Magrebe", 
+                                    `BW` = "África", 
+                                    `LS` = "África", 
+                                    `NA` = "África", 
+                                    `ZA` = "África", 
+                                    `SZ` = "África", 
+                                    `BJ` = "África", 
+                                    `BF` = "África", 
+                                    `CV` = "África", 
+                                    `CI` = "África", 
+                                    `GM` = "África", 
+                                    `GH` = "África", 
+                                    `GN` = "África", 
+                                    `GW` = "África", 
+                                    `LR` = "África", 
+                                    `ML` = "África", 
+                                    `MR` = "África", 
+                                    `NE` = "África", 
+                                    `NG` = "África", 
+                                    `SN` = "África", 
+                                    `SL` = "África", 
+                                    `TG` = "África",
+                                    `CA` = "América do Norte",
+                                    `US` = "América do Norte",
+                                    `AG` = "América Central",
+                                    `BS` = "América Central",
+                                    `BB` = "América Central",
+                                    `CU` = "América Central",
+                                    `DM` = "América Central",
+                                    `DO` = "América Central",
+                                    `GD` = "América Central",
+                                    `HT` = "América Central",
+                                    `JM` = "América Central",
+                                    `KN` = "América Central",
+                                    `LC` = "América Central",
+                                    `VC` = "América Central",
+                                    `TT` = "América Central",
+                                    `BZ` = "América Central",
+                                    `CR` = "América Central",
+                                    `SV` = "América Central",
+                                    `GT` = "América Central",
+                                    `HN` = "América Central",
+                                    `MX` = "América do Norte",
+                                    `NI` = "América Central",
+                                    `PA` = "América Central",
+                                    `AR` = "América do Sul",
+                                    `BO` = "América do Sul",
+                                    `BR` = "América do Sul",
+                                    `CL` = "América do Sul",
+                                    `CO` = "América do Sul",
+                                    `EC` = "América do Sul",
+                                    `GY` = "América do Sul",
+                                    `PY` = "América do Sul",
+                                    `PE` = "América do Sul",
+                                    `SR` = "América do Sul",
+                                    `U` = "América do Sul",
+                                    `VE` = "América do Sul",
+                                    `KZ` = "Ásia",
+                                    `KG` = "Ásia",
+                                    `TJ` = "Ásia",
+                                    `TM` = "Ásia",
+                                    `UZ` = "Ásia",
+                                    `CN` = "Ásia",
+                                    `JP` = "Ásia",
+                                    `MN` = "Ásia",
+                                    `KP` = "Ásia",
+                                    `KR` = "Ásia",
+                                    `TW` = "Ásia",
+                                    `AF` = "Oriente Médio",
+                                    `BD` = "Ásia",
+                                    `BT` = "Ásia",
+                                    `IN` = "Ásia",
+                                    `IR` = "Oriente Médio",
+                                    `MV` = "Ásia",
+                                    `NP` = "Ásia",
+                                    `PK` = "Ásia",
+                                    `LK` = "Ásia",
+                                    `BN` = "Ásia",
+                                    `KH` = "Ásia",
+                                    `ID` = "Ásia",
+                                    `LA` = "Ásia",
+                                    `MY` = "Ásia",
+                                    `MM` = "Ásia",
+                                    `PH` = "Ásia",
+                                    `SG` = "Ásia",
+                                    `TH` = "Ásia",
+                                    `TL` = "Ásia",
+                                    `VN` = "Ásia",
+                                    `AM` = "Ásia",
+                                    `AZ` = "Ásia",
+                                    `BH` = "Oriente Médio",
+                                    `GE` = "Ásia",
+                                    `IQ` = "Oriente Médio",
+                                    `IL` = "Oriente Médio",
+                                    `JO` = "Oriente Médio",
+                                    `KW` = "Oriente Médio",
+                                    `LB` = "Oriente Médio",
+                                    `PS` = "Ásia",
+                                    `OM` = "Oriente Médio",
+                                    `QA` = "Oriente Médio",
+                                    `SA` = "Oriente Médio",
+                                    `SY` = "Oriente Médio",
+                                    `AE` = "Oriente Médio",
+                                    `YE` = "Oriente Médio",
+                                    `AU` = "Oceania",
+                                    `NZ` = "Oceania",
+                                    `FJ` = "Oceania",
+                                    `PG` = "Oceania",
+                                    `SB` = "Oceania",
+                                    `VU` = "Oceania",
+                                    `KI` = "Oceania",
+                                    `MH` = "Oceania",
+                                    `FM` = "Oceania",
+                                    `NR` = "Oceania",
+                                    `PW` = "Oceania",
+                                    `CK` = "Oceania",
+                                    `WS` = "Oceania",
+                                    `TO` = "Oceania",
+                                    `TV` = "Oceania",
+                                    `TOTAL` = "Total"))
+
+
+subsidiary_protection <- subsidiary_protection %>%
+  mutate(continent = dplyr::recode(CITIZEN, `AO` = "África", 
+                                    `CM` = "África", 
+                                    `CF` = "África", 
+                                    `TD` = "África", 
+                                    `CG` = "África", 
+                                    `CD` = "África", 
+                                    `GQ` = "África", 
+                                    `GA` = "África", 
+                                    `ST` = "África", 
+                                    `BI` = "África",
+                                    `KM` = "África", 
+                                    `DJ` = "África", 
+                                    `ER` = "África", 
+                                    `ET` = "África", 
+                                    `KE` = "África", 
+                                    `MG` = "África", 
+                                    `MW` = "África", 
+                                    `MU` = "Magrebe", 
+                                    `MZ` = "África", 
+                                    `RW` = "África", 
+                                    `SC` = "África", 
+                                    `SO` = "África", 
+                                    `UG` = "África", 
+                                    `TZ` = "África", 
+                                    `ZM` = "África",
+                                    `ZW` = "África",
+                                    `DZ` = "Magrebe", 
+                                    `EG` = "África", 
+                                    `LY` = "Magrebe", 
+                                    `MA` = "Magrebe", 
+                                    `SS` = "África", 
+                                    `SD` = "África", 
+                                    `TN` = "Magrebe", 
+                                    `EH` = "Magrebe", 
+                                    `BW` = "África", 
+                                    `LS` = "África", 
+                                    `NA` = "África", 
+                                    `ZA` = "África", 
+                                    `SZ` = "África", 
+                                    `BJ` = "África", 
+                                    `BF` = "África", 
+                                    `CV` = "África", 
+                                    `CI` = "África", 
+                                    `GM` = "África", 
+                                    `GH` = "África", 
+                                    `GN` = "África", 
+                                    `GW` = "África", 
+                                    `LR` = "África", 
+                                    `ML` = "África", 
+                                    `MR` = "África", 
+                                    `NE` = "África", 
+                                    `NG` = "África", 
+                                    `SN` = "África", 
+                                    `SL` = "África", 
+                                    `TG` = "África",
+                                    `CA` = "América do Norte",
+                                    `US` = "América do Norte",
+                                    `AG` = "América Central",
+                                    `BS` = "América Central",
+                                    `BB` = "América Central",
+                                    `CU` = "América Central",
+                                    `DM` = "América Central",
+                                    `DO` = "América Central",
+                                    `GD` = "América Central",
+                                    `HT` = "América Central",
+                                    `JM` = "América Central",
+                                    `KN` = "América Central",
+                                    `LC` = "América Central",
+                                    `VC` = "América Central",
+                                    `TT` = "América Central",
+                                    `BZ` = "América Central",
+                                    `CR` = "América Central",
+                                    `SV` = "América Central",
+                                    `GT` = "América Central",
+                                    `HN` = "América Central",
+                                    `MX` = "América do Norte",
+                                    `NI` = "América Central",
+                                    `PA` = "América Central",
+                                    `AR` = "América do Sul",
+                                    `BO` = "América do Sul",
+                                    `BR` = "América do Sul",
+                                    `CL` = "América do Sul",
+                                    `CO` = "América do Sul",
+                                    `EC` = "América do Sul",
+                                    `GY` = "América do Sul",
+                                    `PY` = "América do Sul",
+                                    `PE` = "América do Sul",
+                                    `SR` = "América do Sul",
+                                    `U` = "América do Sul",
+                                    `VE` = "América do Sul",
+                                    `KZ` = "Ásia",
+                                    `KG` = "Ásia",
+                                    `TJ` = "Ásia",
+                                    `TM` = "Ásia",
+                                    `UZ` = "Ásia",
+                                    `CN` = "Ásia",
+                                    `JP` = "Ásia",
+                                    `MN` = "Ásia",
+                                    `KP` = "Ásia",
+                                    `KR` = "Ásia",
+                                    `TW` = "Ásia",
+                                    `AF` = "Oriente Médio",
+                                    `BD` = "Ásia",
+                                    `BT` = "Ásia",
+                                    `IN` = "Ásia",
+                                    `IR` = "Oriente Médio",
+                                    `MV` = "Ásia",
+                                    `NP` = "Ásia",
+                                    `PK` = "Ásia",
+                                    `LK` = "Ásia",
+                                    `BN` = "Ásia",
+                                    `KH` = "Ásia",
+                                    `ID` = "Ásia",
+                                    `LA` = "Ásia",
+                                    `MY` = "Ásia",
+                                    `MM` = "Ásia",
+                                    `PH` = "Ásia",
+                                    `SG` = "Ásia",
+                                    `TH` = "Ásia",
+                                    `TL` = "Ásia",
+                                    `VN` = "Ásia",
+                                    `AM` = "Ásia",
+                                    `AZ` = "Ásia",
+                                    `BH` = "Oriente Médio",
+                                    `GE` = "Ásia",
+                                    `IQ` = "Oriente Médio",
+                                    `IL` = "Oriente Médio",
+                                    `JO` = "Oriente Médio",
+                                    `KW` = "Oriente Médio",
+                                    `LB` = "Oriente Médio",
+                                    `PS` = "Ásia",
+                                    `OM` = "Oriente Médio",
+                                    `QA` = "Oriente Médio",
+                                    `SA` = "Oriente Médio",
+                                    `SY` = "Oriente Médio",
+                                    `AE` = "Oriente Médio",
+                                    `YE` = "Oriente Médio",
+                                    `AU` = "Oceania",
+                                    `NZ` = "Oceania",
+                                    `FJ` = "Oceania",
+                                    `PG` = "Oceania",
+                                    `SB` = "Oceania",
+                                    `VU` = "Oceania",
+                                    `KI` = "Oceania",
+                                    `MH` = "Oceania",
+                                    `FM` = "Oceania",
+                                    `NR` = "Oceania",
+                                    `PW` = "Oceania",
+                                    `CK` = "Oceania",
+                                    `WS` = "Oceania",
+                                    `TO` = "Oceania",
+                                    `TV` = "Oceania",
+                                    `TOTAL` = "Total"))
+
+asylum_accepted <- asylum_accepted %>%
+  mutate(continent = dplyr::recode(CITIZEN, `AO` = "África", 
+                                    `CM` = "África", 
+                                    `CF` = "África", 
+                                    `TD` = "África", 
+                                    `CG` = "África", 
+                                    `CD` = "África", 
+                                    `GQ` = "África", 
+                                    `GA` = "África", 
+                                    `ST` = "África", 
+                                    `BI` = "África",
+                                    `KM` = "África", 
+                                    `DJ` = "África", 
+                                    `ER` = "África", 
+                                    `ET` = "África", 
+                                    `KE` = "África", 
+                                    `MG` = "África", 
+                                    `MW` = "África", 
+                                    `MU` = "Magrebe", 
+                                    `MZ` = "África", 
+                                    `RW` = "África", 
+                                    `SC` = "África", 
+                                    `SO` = "África", 
+                                    `UG` = "África", 
+                                    `TZ` = "África", 
+                                    `ZM` = "África",
+                                    `ZW` = "África",
+                                    `DZ` = "Magrebe", 
+                                    `EG` = "África", 
+                                    `LY` = "Magrebe", 
+                                    `MA` = "Magrebe", 
+                                    `SS` = "África", 
+                                    `SD` = "África", 
+                                    `TN` = "Magrebe", 
+                                    `EH` = "Magrebe", 
+                                    `BW` = "África", 
+                                    `LS` = "África", 
+                                    `NA` = "África", 
+                                    `ZA` = "África", 
+                                    `SZ` = "África", 
+                                    `BJ` = "África", 
+                                    `BF` = "África", 
+                                    `CV` = "África", 
+                                    `CI` = "África", 
+                                    `GM` = "África", 
+                                    `GH` = "África", 
+                                    `GN` = "África", 
+                                    `GW` = "África", 
+                                    `LR` = "África", 
+                                    `ML` = "África", 
+                                    `MR` = "África", 
+                                    `NE` = "África", 
+                                    `NG` = "África", 
+                                    `SN` = "África", 
+                                    `SL` = "África", 
+                                    `TG` = "África",
+                                    `CA` = "América do Norte",
+                                    `US` = "América do Norte",
+                                    `AG` = "América Central",
+                                    `BS` = "América Central",
+                                    `BB` = "América Central",
+                                    `CU` = "América Central",
+                                    `DM` = "América Central",
+                                    `DO` = "América Central",
+                                    `GD` = "América Central",
+                                    `HT` = "América Central",
+                                    `JM` = "América Central",
+                                    `KN` = "América Central",
+                                    `LC` = "América Central",
+                                    `VC` = "América Central",
+                                    `TT` = "América Central",
+                                    `BZ` = "América Central",
+                                    `CR` = "América Central",
+                                    `SV` = "América Central",
+                                    `GT` = "América Central",
+                                    `HN` = "América Central",
+                                    `MX` = "América do Norte",
+                                    `NI` = "América Central",
+                                    `PA` = "América Central",
+                                    `AR` = "América do Sul",
+                                    `BO` = "América do Sul",
+                                    `BR` = "América do Sul",
+                                    `CL` = "América do Sul",
+                                    `CO` = "América do Sul",
+                                    `EC` = "América do Sul",
+                                    `GY` = "América do Sul",
+                                    `PY` = "América do Sul",
+                                    `PE` = "América do Sul",
+                                    `SR` = "América do Sul",
+                                    `U` = "América do Sul",
+                                    `VE` = "América do Sul",
+                                    `KZ` = "Ásia",
+                                    `KG` = "Ásia",
+                                    `TJ` = "Ásia",
+                                    `TM` = "Ásia",
+                                    `UZ` = "Ásia",
+                                    `CN` = "Ásia",
+                                    `JP` = "Ásia",
+                                    `MN` = "Ásia",
+                                    `KP` = "Ásia",
+                                    `KR` = "Ásia",
+                                    `TW` = "Ásia",
+                                    `AF` = "Oriente Médio",
+                                    `BD` = "Ásia",
+                                    `BT` = "Ásia",
+                                    `IN` = "Ásia",
+                                    `IR` = "Oriente Médio",
+                                    `MV` = "Ásia",
+                                    `NP` = "Ásia",
+                                    `PK` = "Ásia",
+                                    `LK` = "Ásia",
+                                    `BN` = "Ásia",
+                                    `KH` = "Ásia",
+                                    `ID` = "Ásia",
+                                    `LA` = "Ásia",
+                                    `MY` = "Ásia",
+                                    `MM` = "Ásia",
+                                    `PH` = "Ásia",
+                                    `SG` = "Ásia",
+                                    `TH` = "Ásia",
+                                    `TL` = "Ásia",
+                                    `VN` = "Ásia",
+                                    `AM` = "Ásia",
+                                    `AZ` = "Ásia",
+                                    `BH` = "Oriente Médio",
+                                    `GE` = "Ásia",
+                                    `IQ` = "Oriente Médio",
+                                    `IL` = "Oriente Médio",
+                                    `JO` = "Oriente Médio",
+                                    `KW` = "Oriente Médio",
+                                    `LB` = "Oriente Médio",
+                                    `PS` = "Ásia",
+                                    `OM` = "Oriente Médio",
+                                    `QA` = "Oriente Médio",
+                                    `SA` = "Oriente Médio",
+                                    `SY` = "Oriente Médio",
+                                    `AE` = "Oriente Médio",
+                                    `YE` = "Oriente Médio",
+                                    `AU` = "Oceania",
+                                    `NZ` = "Oceania",
+                                    `FJ` = "Oceania",
+                                    `PG` = "Oceania",
+                                    `SB` = "Oceania",
+                                    `VU` = "Oceania",
+                                    `KI` = "Oceania",
+                                    `MH` = "Oceania",
+                                    `FM` = "Oceania",
+                                    `NR` = "Oceania",
+                                    `PW` = "Oceania",
+                                    `CK` = "Oceania",
+                                    `WS` = "Oceania",
+                                    `TO` = "Oceania",
+                                    `TV` = "Oceania",
+                                    `TOTAL` = "Total"))
+
+asylum_application <- asylum_application %>%
+  mutate(continent = dplyr::recode(CITIZEN, `AO` = "África", 
+                                    `CM` = "África", 
+                                    `CF` = "África", 
+                                    `TD` = "África", 
+                                    `CG` = "África", 
+                                    `CD` = "África", 
+                                    `GQ` = "África", 
+                                    `GA` = "África", 
+                                    `ST` = "África", 
+                                    `BI` = "África",
+                                    `KM` = "África", 
+                                    `DJ` = "África", 
+                                    `ER` = "África", 
+                                    `ET` = "África", 
+                                    `KE` = "África", 
+                                    `MG` = "África", 
+                                    `MW` = "África", 
+                                    `MU` = "Magrebe", 
+                                    `MZ` = "África", 
+                                    `RW` = "África", 
+                                    `SC` = "África", 
+                                    `SO` = "África", 
+                                    `UG` = "África", 
+                                    `TZ` = "África", 
+                                    `ZM` = "África",
+                                    `ZW` = "África",
+                                    `DZ` = "Magrebe", 
+                                    `EG` = "África", 
+                                    `LY` = "Magrebe", 
+                                    `MA` = "Magrebe", 
+                                    `SS` = "África", 
+                                    `SD` = "África", 
+                                    `TN` = "Magrebe", 
+                                    `EH` = "Magrebe", 
+                                    `BW` = "África", 
+                                    `LS` = "África", 
+                                    `NA` = "África", 
+                                    `ZA` = "África", 
+                                    `SZ` = "África", 
+                                    `BJ` = "África", 
+                                    `BF` = "África", 
+                                    `CV` = "África", 
+                                    `CI` = "África", 
+                                    `GM` = "África", 
+                                    `GH` = "África", 
+                                    `GN` = "África", 
+                                    `GW` = "África", 
+                                    `LR` = "África", 
+                                    `ML` = "África", 
+                                    `MR` = "África", 
+                                    `NE` = "África", 
+                                    `NG` = "África", 
+                                    `SN` = "África", 
+                                    `SL` = "África", 
+                                    `TG` = "África",
+                                    `CA` = "América do Norte",
+                                    `US` = "América do Norte",
+                                    `AG` = "América Central",
+                                    `BS` = "América Central",
+                                    `BB` = "América Central",
+                                    `CU` = "América Central",
+                                    `DM` = "América Central",
+                                    `DO` = "América Central",
+                                    `GD` = "América Central",
+                                    `HT` = "América Central",
+                                    `JM` = "América Central",
+                                    `KN` = "América Central",
+                                    `LC` = "América Central",
+                                    `VC` = "América Central",
+                                    `TT` = "América Central",
+                                    `BZ` = "América Central",
+                                    `CR` = "América Central",
+                                    `SV` = "América Central",
+                                    `GT` = "América Central",
+                                    `HN` = "América Central",
+                                    `MX` = "América do Norte",
+                                    `NI` = "América Central",
+                                    `PA` = "América Central",
+                                    `AR` = "América do Sul",
+                                    `BO` = "América do Sul",
+                                    `BR` = "América do Sul",
+                                    `CL` = "América do Sul",
+                                    `CO` = "América do Sul",
+                                    `EC` = "América do Sul",
+                                    `GY` = "América do Sul",
+                                    `PY` = "América do Sul",
+                                    `PE` = "América do Sul",
+                                    `SR` = "América do Sul",
+                                    `U` = "América do Sul",
+                                    `VE` = "América do Sul",
+                                    `KZ` = "Ásia",
+                                    `KG` = "Ásia",
+                                    `TJ` = "Ásia",
+                                    `TM` = "Ásia",
+                                    `UZ` = "Ásia",
+                                    `CN` = "Ásia",
+                                    `JP` = "Ásia",
+                                    `MN` = "Ásia",
+                                    `KP` = "Ásia",
+                                    `KR` = "Ásia",
+                                    `TW` = "Ásia",
+                                    `AF` = "Oriente Médio",
+                                    `BD` = "Ásia",
+                                    `BT` = "Ásia",
+                                    `IN` = "Ásia",
+                                    `IR` = "Oriente Médio",
+                                    `MV` = "Ásia",
+                                    `NP` = "Ásia",
+                                    `PK` = "Ásia",
+                                    `LK` = "Ásia",
+                                    `BN` = "Ásia",
+                                    `KH` = "Ásia",
+                                    `ID` = "Ásia",
+                                    `LA` = "Ásia",
+                                    `MY` = "Ásia",
+                                    `MM` = "Ásia",
+                                    `PH` = "Ásia",
+                                    `SG` = "Ásia",
+                                    `TH` = "Ásia",
+                                    `TL` = "Ásia",
+                                    `VN` = "Ásia",
+                                    `AM` = "Ásia",
+                                    `AZ` = "Ásia",
+                                    `BH` = "Oriente Médio",
+                                    `GE` = "Ásia",
+                                    `IQ` = "Oriente Médio",
+                                    `IL` = "Oriente Médio",
+                                    `JO` = "Oriente Médio",
+                                    `KW` = "Oriente Médio",
+                                    `LB` = "Oriente Médio",
+                                    `PS` = "Ásia",
+                                    `OM` = "Oriente Médio",
+                                    `QA` = "Oriente Médio",
+                                    `SA` = "Oriente Médio",
+                                    `SY` = "Oriente Médio",
+                                    `AE` = "Oriente Médio",
+                                    `YE` = "Oriente Médio",
+                                    `AU` = "Oceania",
+                                    `NZ` = "Oceania",
+                                    `FJ` = "Oceania",
+                                    `PG` = "Oceania",
+                                    `SB` = "Oceania",
+                                    `VU` = "Oceania",
+                                    `KI` = "Oceania",
+                                    `MH` = "Oceania",
+                                    `FM` = "Oceania",
+                                    `NR` = "Oceania",
+                                    `PW` = "Oceania",
+                                    `CK` = "Oceania",
+                                    `WS` = "Oceania",
+                                    `TO` = "Oceania",
+                                    `TV` = "Oceania",
+                                    `TOTAL` = "Total"))
+```
+
+  Começarei apresentando alguns dados descritivamente. Abaixo, seguem os gráficos sobre os dados de reassentamento, de proteção subsidiária e de concessão de asilo.
+  
+```{r, echo=F, message=F, warning=F}
+resettled %>% 
+  filter(continent != "Total") %>% 
+  ggplot()+
+    geom_col(aes(as.character(TIME), as.numeric(Value), fill = continent)) +
+    theme_classic() +
+    labs(x = "",
+         y = "") +
+    scale_fill_discrete(name = "") +
+    ggtitle("Reassentamento")
+```
+
+  No gráfico acima, é possível ver que o reassentamento teve aumentos e baixas ao longo desses 10 anos, mas está em crescimento significativo nos últimos anos. A maioria dessas pessoas vem da África e do Oriente Médio. A Ásia também é uma região de saída de muitos refugiados reassentados.
+
+```{r, echo=F, message=F, warning=F}
+subsidiary_protection %>% 
+  filter(continent != "Total") %>% 
+  ggplot()+
+    geom_col(aes(as.character(TIME), as.numeric(Value), fill = continent)) +
+    theme_classic() +
+    labs(x = "",
+         y = "") +
+    scale_fill_discrete(name = "") +
+    ggtitle("Proteção Subsidiária")
+```
+
+  A proteção subsidiária está em aumento gradativo nos últimos anos, a maioria deles vindos da África e da Ásia. O Oriente Médio, América Central, Magrebe e América do Sul aparecem no gráfico ocupando um espaço pequeno, mas signigicativo.
+
+
+```{r, echo=F, message=F, warning=F}
+asylum_accepted %>% 
+  filter(continent != "Total") %>% 
+  ggplot()+
+    geom_col(aes(as.character(TIME), as.numeric(Value), fill = continent)) +
+    theme_classic() +
+    labs(x = "",
+         y = "") +
+    scale_fill_discrete(name = "") +
+    ggtitle("Concessão de Asilo - 1º instância")
+```
+
+  Por fim, vemos a concessão de asilo em 1º instância, para fechar os dados de acolhimento de refugiados ou pessoas em risco. No caso dos asilos, vemos uma tendência de crescimento até 2017, e uma queda desde então. A maior parte desses números de concentra em pessoas vindas da África e do Oriente Médio. Depois, é possível ver a Ásia, Magrebe, América do Sul e América Central.
+  
+  Esses dados de concessão serão importantes para dar sequência a um modelo de regressão linear multivariada. O objetivo desse tipo de teste estatístico é traçar uma linha ideal que marca a menor distância entre todos os casos em análise e sua distribuição dentro das variáveis, observando a diferença entre os valores observados e estimados - resíduo -, mirando no menor resíduo possível. Em resumo, a técnica serve para encontrar padrões de relações entre variáveis, podendo resultar em previsões comportamentais que podem ajudar a modelar não só associações, mas algum nível de causalidade entre elas.
+  
+  
+## Resultados  
+
+  Para realizar a regressão, utilizaremos 3 variáveis, a dependente e duas independentes. A variável dependente é uma variável contínua que reflete uma razão entre a quantidade de concessão de asilo em primeira instância por país e a aplicação para o processo de acolhimento em asilo (especificamente aplicações realizadas pela primeira vez). As duas variáveis independentes serão o gênero, feminino e masculino, e a cidadania, que aqui será indicada em termos de regiões do mundo.
+  
+```{r, echo=F, message=F, warning=F}
+asylum_accepted$Value <- as.numeric(asylum_accepted$Value)
+asylum_application$Value <- as.numeric(asylum_application$Value)
+
+
+asylum_wider_accepted <- asylum_accepted %>% 
+  pivot_wider(names_from = SEX, values_from = Value)
+
+asylum_wider_application <- asylum_application %>% 
+  pivot_wider(names_from = SEX, values_from = Value)
+
+
+
+asylum_wider_accepted$Acceptance_level <- asylum_wider_accepted$Total/asylum_wider_application$Total
+
+asylum_wider_accepted <- asylum_wider_accepted %>% 
+  drop_na(Acceptance_level) %>% 
+  filter(Acceptance_level != Inf)
+
+```
+  
+```{r, message=F, warning=F}
+summary(reg1 <- lm(Acceptance_level ~ continent + Females, data = asylum_wider_accepted))
+
+confint(reg1)
+```
+
+  O modelo acima tenta medir o nível de aceitação da França em relação à origem do refugiados e ao seu gênero. Ele revela um p-valor significativo, menor que 0,000. O intercepto indica a média do nível de aceitação quando os refugiados forem africanos, já que essa origem é a cateogira de referência da variável de região; seu coeficiente beta indica que a cada pessoa a mais vinda da África, a média de aceitação cresce em 0.16, e se mostra extremamente significativo. 
+  
+  Analisando a variável de regiões, é possível ver que a maioria não possui resultados significativos quando comparados com a África. Dentre o que são, temos a região do Magrebe, e seu coeficiente beta indica que a cada pessoa a mais vinda da região do Magrebe, a média de aceitação cresce em 0.41; também temos o Oriente Médio, e seu beta indica que a cada pessoa a mais vinda da região, a média de aceitação cresce em 0.18. A variável de gênero indica que ser mulher aumenta a média de aceitação em 0,002, e também possui p-valor significativo. 
+
+  Nenhuma das variáveis estatisticamente significantes são negativas, apresentando uma relação positiva entre elas e o nível de aceitação de pedidos de asilo na França. Mesmo assim, é possível notar que as regiões do mundo com relações negativas são aquelas com menos casos de acolhimento pelo país historicamente, especialmente os casos das Américas e da Oceania.
+  
+  Alguns outros dados sobre o modelo são o R² ajustado, que indica a capacidade do modelo em explicar a variável dependente; nesse caso, o R² é extremamente baixo, 0,054. Outro dado importante se relaciona aos resíduos, que idealmente se aproximam muito de zero na média; nesse caso, a média está bastante distante do ideal.
+  
+```{r, echo=F, message=F, warning=F}
+plot_model(reg1, title = "Nível de Aceitação")
+```
+
+  Uma outra forma de observar o modelo é através do gráfico acima. Ele traz os coeficientes betas apresentados no eixo x, e os intervalos de confiança indicado pelas linhas horizontais. A linha mais grossa branca indica o 0, e qualquer coeficiente que ultrapassa esse limite se torna não significativo estatisticamente. É possível confirmar o caso do Magrebe e do Oriente Médio em relação a Africanos, que são significantes. No caso do gênero, é possível ver que a diferença para homens é muito próxima de zero, indicando que quase não há diferença entre os gêneros. Pontos vermelhos indicam relação negativa com a média do nível de aceitação de asilados, enquanto pontos azuis indicam relações positivas.
+
+```{r,  echo=F, message=F, warning=F}
+plot_model(reg1, title = "Nível de Aceitação", type = "std")
+```
+
+  Já este gráfico apresenta os coeficientes betas indicadas em termos de desvio padrão. Esse tipo de análise é interessante por padronizar o formato das variáveis e permitir a comparação de qual categoria ou variável pode influcenciar mais a variável dependente. Por exemplo, no caso acima, é possível confirmar que a categoria do Magrebe, em comparação com África, é muito mais importante para explicar o nível de aceitação de asilados, de modo que a mudança de 1 desvio padrão na categoria de Magrebe aumenta, em média, pouco mais de 0,06 no nível de aceitação da França.
+  
+```{r, message=F, warning=F}
+summary(reg2 <- lm(Acceptance_level ~ continent + Females + continent*Females, data = asylum_wider_accepted))
+```
+
+  Este modelo acima tenta interagir as duas variáveis, região e gênero. Apenas como um teste, podemos ver que a interação de mulheres com a América Central revela uma relação significante. Isso significa que ser mulher e ser de algum país dessa região aumenta o nível de aceitação, em média, em 0.033. A outras variáveis não mudam ou não apresentam significância, mas é importante informar que as categorias de cidadania sem interação trazidas para o modelo representam coeficientes para homens, enquanto a variável de gênero sem interação indica o coeficiente para mulheres africanas. O modelo tem um p-valor significativo, menor que 0,000. O R² ajustado segue baixo, 0,054, e a média dos resíduos também se distancia o ideal de zero.
+  
+  Modelos de regressão possuem pressupostos importante que, para que o modelo seja devidamente realizado, precisam ser seguidos e reconhecidos. No geral, a literatura aponta 10 pressupostos: Linearidade, mensuração correta, média de resíduos tende a zero, homocedasticidade, ausência de autocorrelação, baixa multicolinearidade, excluir viés de variável omitida, incluir apenas variáveis importantes, normalidade dos resíduos e adequação entre quantidade de casos e de variáveis. Anteiormente, eu falei de alguns desses pressupostos. A partir de agora, focaremos testes em apenas cinco desses apresentados, aplicando as análises ao nosso primeiro modelo, sem interação.
+  
+  Para testar a linearidade do modelo, ou seja, comprovar se a relação entre as variáveis é linear e constante ou não, geramos um gráfico.
+  
+```{r, echo=F, message=F, warning=F}
+plot(reg1, 1)
+```
+
+  Esse gráfico apresenta os valores preditos dos coeficientes do modelo no eixo x, e os resíduos no eixo y. O ideal seria que a linha vermelha estivesse alinhada com a linha pontilhada. Apesar disso acontecer na parte esquerda do gráfico, o lado direito mostra como a linearidade não se sustenta com perfeição.
+  
+  O próximo teste é o da homocedasticidade. Esse pressuposto assume que os resíduos serão alocados aleatoriamente ao longo da variação da variável dependente em relação ao valores preditos da variável independente. Isso geraria uma distribuição uniforme.
+  
+```{r, echo=F, message=F, warning=F}
+plot(reg1, 3)
+```
+
+  O esperado nesse gráfico, que apresenta os resíduos padronizados no eixo y, é uma distribuição semelhante acima e abaixo da linha vermelha. O que vemos, na realidade, é certo desalinhamento, com muitos casos abaixo da linha e alguns casos outliers acima dela.
+  
+  Também existem testes de hipótese para verificar a homocedasticidade. Utilizaremos um deles, o teste de Breush-Pagan. Os dados abaixo indicam um p-valor muito baixo, indicando que a hipótese nula da homocedasticidade pode ser rejeitada.
+  
+```{r, message=F, warning=F}
+bptest(reg1)
+```
+
+  Agora, veremos sobre Autocorrelação. Aqui, o teste busca identificar se existe algum tipo de efeito correndo entre variáveis ao longo do tempo, de modo que os erros dessas variáveis não sejam independentes, indicando a presença de autocorrelação e comprometendo a compreensão dos efeitos observados. Também aplicaremos dois testes, um gráfico e o teste formal de Durbin-Watson.
+  
+```{r, echo=F, message=F, warning=F}
+acf(reg1$residuals)
+```
+
+  Este gráfico busca identificar se as linhas verticais, com exceção da primeira, ultrapassa ou não as linhas pontilhadas azuis. O modelo não apresenta nenhuma ultrapassagem no gráfico, indicando que não há autocorrelação.
+  
+```{r, message=F, warning=F}
+durbinWatsonTest(reg1)
+```
+
+  Já o teste acima apresenta o teste de hipótese de Dubin-Watson, e a hipótese nula é de que não há autocorrelação. Com o p-valor de 0.986, é seguro dizer que não se pode rejeitar a hipótese nula de que a autocorrelação não existe.
+  
+  Um outro pressuposto é o da multicolinearidade, que nada mais é que uma alta correlação entre as variáveis independentes. Esse tipo de relação pode gerar um efeito sobreposto na variável dependente, causando um erro de mensuração dos reais efeitos nela. Para testar o nível de multicolinearidade no modelo, utilizaremos o teste _variance inflation factor_, indicando que variáveis não multicolineares devem apresentar um valor entre 3 e 1. Apesar de serem arbitrários, muitos pesquisadores indicam que valores acima de 4 são preocupantes, indicando alta multicolinearidade entre variáveis. Como é possível ver nesse caso, ambas variáveis apresentam valores pouco acima de 1, protegendo o modelo de multicolinearidade.
+  
+```{r, message=F, warning=F}
+vif(reg1)
+```
+
+  Por fim, o último teste tem a ver com a normalidade dos resíduos. Segundo esse pressuposto, os termos de erro precisam estar distribuídos normalmente, evitando viéses de amostragem ou problemas de generalização. Também farei um teste gráfico e um teste de hipótese.
+
+```{r, echo=F, message=F, warning=F}
+plot(reg1, 2)
+```
+ 
+ Os casos que aparecem distantes da linha pontilhada apresentam resíduos que fogem da normalidade. Esses países indicados são El Salvador(2016) e Saara Continental(2018 e 2019). 
+ 
+```{r, message=F, warning=F}
+residuos <- studres(reg1)
+shapiro.test(residuos)
+```
+ 
+ O teste acima é o de Shapiro-Wilk para normalidade, e tem a hipótese nula de que a normalidade existe. Dado um p-valor muito baixo, é possível rejeitar a hipótese nula, indicando que o modelo não possui uma distribuição normal de seu erro.
+ 
+ Ainda dentro dessa discussão sobre a normalidade, é interessante testar os _outliers_ e os casos influentes do modelo. É importante indicar que um caso _outliers_ é aquele que possui um erro muito afastado da média do erro, ou aquela observação que possui um valor muito discrepante da média de casos nas variáveis analisadas _(leverage)_. Já um caso influente é aquele que combina os dois episódios, ou seja, além de ter um erro muito afastado da média, também possui um valor muito discrepante das outras observações, possuindo a capacidade de influenciar a reta de regressão.
+ 
+ Para investigar isso em meu modelo, farei um teste de gráfico. Logo abaixo, a imagem indica a disposição dos resíduos padronizados, mostrando se os casos possuem _leverage_ alto, resíduos altos ou se são influentes.
+ 
+```{r, echo=F, message=F, warning=F}
+ols_plot_resid_lev(reg1)
+```
+
+ Em nosso modelo, é possível identificar casos apenas com resíduos altos, marcados em verde; Em vermelho, vemos o grupo de observações que são _leverage_, destoando na média das outras observações; e por fim, não identificamos nenhum caso influente, que se posicionariam à direita da linha vertical acima e abaixo dos limites das linhas horizontais. Em azul, temos as observações normais.
+ 
+ Esse último gráfico fecha nossas análises e testes do modelo. É possível ver que o ajuste não é bem o ideal e alguns presuspostos foram violados, ainda que marginalmente e de maneira aceitável, dada a complexidade da realidade social. Ainda assim, é importante checar esses pressupostos na construção de projetos. E há muitas formas de tornar o trabalho mais adequado a eles, seja por transformação de variável, uso de proxys, aumento do número de casos, exclusão ou inlcusão de variáveis... A soluções são muitas e dependem do contexto.
+
+
+## Considerações Finais
+
+  Em minha análise simplista e modesta, foi possível identificar que minha primeira hipótese, 1) A cidadania tem uma influência alta na concessão de asilo, e ser do Magrebe aumenta taxa de concessão, pôde se confirmar. O nível de aceitação a requerentes de asilo vindos dessa região se mostrou bastante significativa. O mesmo não pode ser dito da segunda hipótese, 2) Mulheres são mais aceitas que homens; não foi encontrada nenhuma comprovação de que haja diferença entre homens e mulheres.
+  
+  É importante destacar que o presente projeto é exploratório e não tem pretenções de encontrar causalidade ou determinantes. A investigação é puramente por algum tipo de influência visível ou relação maior entre as variáveis utilizadas. Há muito o que aprimorar no modelo, começando pela inclusão de mais variáveis que um conhecimento mais qualitativo sobre a França pode oferecer. Também é importante compreender a melhor forma de organizar os dados para obter as melhores análises possíveis, como uma comparação melhor entre gêneros.
+  
+  Com um banco mais robusto, poderia ser possível rodar esses testes de pressupostos e efetivar melhorias e mudanças que poderiam aprimorar as análises, como exclusão de casos outliers e algum tipo de substituição de casos nulos por algum valor predito baseado em algum padrão, como aproximação ou estimação.
+  
+  A pesquisa não avança muito na ciência, mas é interessante fazer esse tipo de estudo para compreender melhor o comportamento dos Estados em escolhas sobre políticas migratórias. Não conheço nenhum trabalho que utilize regressão linear multivariada para tentar mostar o que influencia no processo de tomada de decisão para requerentes de asilo, e essa poderia ser uma abordagem interessante.
+  
+  Por não se comprometer com causalidade, meu projeto não consegue responder satisfatoriamente aos 4 hurdles que o livro de Kellstedt e Whitten (2018) propõem. Primeiro, eu diria que o mecanismo que conecta as variáveis indepedentes e dependente são questões de macropolítica, como política internacional e ligações de passado colonial. Segundo, é possível descartar a possibilidade de X influenciar Y, porque a decisão sobre acolhimento é tomada unilateralmente. Terceiro, é possível que haja uma covariação entre X e Y, dado que quanto mais pessoas são aceitas, mais pessoas podem se candidatar. E quarto, a inserção de gênero não foi enquanto uma variável de controle, mas ajudou a compreender se havia algum viés de gênero no nível de aceitação.
+
+## Referências
+
+Agência da ONU para Refugiados. Refugiado ou Migrante? O ACNUR incentiva a usar o termo correto. Disponível em: <https://www.acnur.org/portugues/2015/10/01/refugiado-ou-migrante-o-acnur-incentiva-a-usar-o-termo-correto/>. Acesso em: 01 jun. 2021.
+
+BOURBEAU, Philippe. Migration, Resilience and Security: Responses to New Inflows of Asylum Seekers and Migrants. Journal of Ethnic and Migration Studies, 2015.
+
+BRITO, Fausto. “A politização das migrações internacionais: direitos humanos e soberania nacional.” Rev. Bras. Est. Pop., Vol. 30, 2013.
+
+DALMÁZ, Matheus. A Política de Imigração da União Europeia e as Questões Relativas aos Direitos Humanos e ao Multiculturalismo no Velho Continente. Revista Signos, Lajedo, 2016.
+
+Eurostat. Disponível em: <https://ec.europa.eu/eurostat/data/database>. Acesso em: 15 maio. 2021.
+
+
+FIGUEREDO, Dalson; NUNES, Felipe; ROCHA, Ernani; SANTOS, Manoel; BATISTA, Mariana; SILVA JÚNIOR, José. O que fazer e o que não fazer com a regressão: pressupostos e aplicações do modelo linear de Mínimos Quadrados Ordinários(MQO). Revista Política Hoje, vol. 20, n. 1, 2011.
+
+
+FISHER, Betsy L. Doors to Safety: Exit West, Refugee Resettlement, and the Right to Asylum. Michigan Law Review, vol. 117, issue 6, 2019.
+
+Global Citizen. France to Open Refugee ‘Hotspots’ in Libya to Process Asylum Requests. Disponível em: <https://www.globalcitizen.org/en/content/macron-libya-refugee-hotspots/?template=next>. Acesso em: 26 jul. 2021.
+
+GRZYMALA-KAZLOWSKA, Aleksandra, e  PHILLIMORE, Jenny. Introduction: rethinking integration, New perspectives on adaptation and settlement in the era of super-diversity. Journal of  Ethnic and Migration Studies, 2017.
+
+
+KELLSTEDT, Paul; e WHITTEN, Guy. The fundamentals of political science research. Cambridge University Press, Cambridge: 3º edição, 2018.
+
+
+KOZAKAI, Toshiaki; WOLTER, Rafael Pecly. Armadilhas do multiculturalismo: análise psicossocial da integração à francesa dos estrangeiros. Aletheia, n. 26, p. 11-26, 2007.
+
+Migration Data Portal. Disponível em: <https://migrationdataportal.org/>. Acesso em: 01 jul. 2021. 
+
+MODOOD, Tariq. Multiculturalism and Integration: Struggling with confusions. Accept Pluralism, Centre for the Study of Ethnicity and Citizenship - European University Institute, 2011.
+
+PENNINX, Rinus. Problems of and solutions for the study of immigrant integration. Comparative Migration Studies, 2019.
+
+PICHÉ, Victor. Contemporary Migration Theories as Reflected in their Funding Texts. Population, vol. 68, issue 1, 2013.
+
+REIS, Rossana R. “Soberania, Direitos Humanos e migrações internacionais.” Revista Brasileira de Ciências Sociais, Vol. 19, 2004.
+
+WARD, Colleen; GALE, Jessica; e STAERKLÉ, Christian. Immigration and multiculturalism in context: A framework for psychological research. Journal of Social Issues, 2018.
+
+VERTOVEC, Steven. Conceiving and Researching Transnationalism. Ethnic and Racial Studies, vol. 22, n. 2, 1999. 
